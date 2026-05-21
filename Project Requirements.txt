@@ -1,0 +1,754 @@
+# Bulldog Founds — Low-Level Requirements (MVP-Focused)
+
+## 1. MVP Goal
+
+Deliver a working web application where authenticated NU Laguna users can:
+
+1. Register/Login
+2. Create lost/found item posts
+3. Upload item images
+4. Search and filter items
+5. Contact item posters via Microsoft Teams
+6. Update item status
+
+The MVP prioritizes:
+
+* Core business flow
+* Stability
+* Simplicity
+* Clean OOP architecture
+* Expandability
+
+---
+
+# 2. MVP Feature Prioritization
+
+| Priority | Feature                  | MVP Status  |
+| -------- | ------------------------ | ----------- |
+| P0       | Authentication           | Required    |
+| P0       | User Management          | Required    |
+| P0       | Item Posting             | Required    |
+| P0       | Image Upload             | Required    |
+| P0       | Search & Filtering       | Required    |
+| P0       | Item Status Update       | Required    |
+| P0       | Responsive UI            | Required    |
+| P1       | User Profile Viewing     | Recommended |
+| P1       | Pagination               | Recommended |
+| P1       | Input Validation         | Required    |
+| P1       | Role-based authorization | Required    |
+| P2       | Notifications            | Future      |
+| P2       | Admin Dashboard          | Future      |
+| P2       | Real-time chat           | Future      |
+| P2       | AI image matching        | Future      |
+
+---
+
+# 3. System Architecture
+
+## 3.1 Architecture Style
+
+Use:
+
+* Layered Architecture
+* RESTful API
+* Modular Feature-Based Structure
+
+## 3.2 Backend Layers
+
+```text
+Controller Layer
+↓
+Service Layer
+↓
+Repository Layer
+↓
+Database
+```
+
+## 3.3 Frontend Architecture
+
+```text
+Pages
+↓
+Components
+↓
+Services/API Layer
+↓
+Backend API
+```
+
+---
+
+# 4. Backend Low-Level Requirements (Java Spring Boot)
+
+---
+
+# 4.1 Project Structure
+
+```text
+src/main/java/com/bulldogfounds/
+
+├── config/
+├── controller/
+├── dto/
+├── entity/
+├── enums/
+├── exception/
+├── mapper/
+├── repository/
+├── security/
+├── service/
+│   ├── impl/
+├── util/
+└── BulldogFoundsApplication.java
+```
+
+---
+
+# 4.2 Core Entities
+
+---
+
+## 4.2.1 User Entity
+
+### Purpose
+
+Represents authenticated system users.
+
+### Fields
+
+| Field     | Type          | Constraints    |
+| --------- | ------------- | -------------- |
+| id        | Long          | Primary Key    |
+| firstName | String        | Required       |
+| lastName  | String        | Required       |
+| email     | String        | Unique         |
+| password  | String        | Encrypted      |
+| role      | UserRole      | Required       |
+| teamsLink | String        | Optional       |
+| createdAt | LocalDateTime | Auto-generated |
+
+### OOP Concepts
+
+* Encapsulation
+* Abstraction
+
+---
+
+## 4.2.2 ItemPost Entity
+
+### Purpose
+
+Represents lost/found item posts.
+
+### Fields
+
+| Field             | Type          | Constraints        |
+| ----------------- | ------------- | ------------------ |
+| id                | Long          | Primary Key        |
+| title             | String        | Required           |
+| color             | String        | Required           |
+| description       | String        | Required           |
+| lastKnownLocation | String        | Required           |
+| claimLocation     | String        | Required           |
+| additionalDetails | String        | Optional           |
+| status            | ItemStatus    | Default UNRESOLVED |
+| imageUrl          | String        | Optional           |
+| createdAt         | LocalDateTime | Auto-generated     |
+| createdBy         | User          | Many-to-One        |
+
+---
+
+# 4.3 Enums
+
+---
+
+## UserRole Enum
+
+```java
+STUDENT
+FACULTY
+STAFF
+```
+
+---
+
+## ItemStatus Enum
+
+```java
+UNRESOLVED
+PENDING_CLAIM
+RESOLVED
+```
+
+---
+
+# 4.4 Authentication Module
+
+---
+
+## Functional Requirements
+
+### Registration
+
+The system shall:
+
+* Validate email uniqueness
+* Encrypt passwords using BCrypt
+* Generate JWT after successful registration
+
+### Login
+
+The system shall:
+
+* Validate credentials
+* Generate JWT token
+* Return authenticated user details
+
+---
+
+## JWT Requirements
+
+| Requirement | Description   |
+| ----------- | ------------- |
+| Token Type  | Bearer Token  |
+| Expiration  | 24 Hours      |
+| Header      | Authorization |
+| Algorithm   | HS256         |
+
+---
+
+# 4.5 API Endpoints
+
+---
+
+# Authentication APIs
+
+## POST `/api/auth/register`
+
+### Request
+
+```json
+{
+  "firstName": "Juan",
+  "lastName": "Dela Cruz",
+  "email": "juan@nu-laguna.edu.ph",
+  "password": "password123",
+  "role": "STUDENT",
+  "teamsLink": "https://teams.microsoft.com/..."
+}
+```
+
+### Response
+
+```json
+{
+  "token": "jwt-token"
+}
+```
+
+---
+
+## POST `/api/auth/login`
+
+### Request
+
+```json
+{
+  "email": "juan@nu-laguna.edu.ph",
+  "password": "password123"
+}
+```
+
+---
+
+# Item APIs
+
+---
+
+## POST `/api/items`
+
+Creates item post.
+
+### Authorization
+
+Authenticated users only.
+
+### Multipart Form Data
+
+| Field             | Type   |
+| ----------------- | ------ |
+| title             | String |
+| color             | String |
+| description       | String |
+| lastKnownLocation | String |
+| claimLocation     | String |
+| additionalDetails | String |
+| image             | File   |
+
+---
+
+## GET `/api/items`
+
+Returns paginated item list.
+
+### Query Parameters
+
+| Parameter | Example    |
+| --------- | ---------- |
+| keyword   | wallet     |
+| color     | black      |
+| status    | UNRESOLVED |
+
+---
+
+## GET `/api/items/{id}`
+
+Returns item details.
+
+---
+
+## PUT `/api/items/{id}/status`
+
+Updates item status.
+
+### Authorization Rules
+
+| Role        | Permission |
+| ----------- | ---------- |
+| Post Owner  | Allowed    |
+| Other Users | Denied     |
+
+---
+
+## DELETE `/api/items/{id}`
+
+Allows owner to delete own post.
+
+---
+
+# 4.6 Service Layer Requirements
+
+---
+
+## UserService
+
+### Responsibilities
+
+* Register users
+* Authenticate users
+* Retrieve profiles
+
+---
+
+## ItemService
+
+### Responsibilities
+
+* Create item posts
+* Search/filter items
+* Update item status
+* Delete item posts
+
+---
+
+# 4.7 Repository Requirements
+
+Use Spring Data JPA repositories.
+
+---
+
+## UserRepository
+
+Required methods:
+
+```java
+Optional<User> findByEmail(String email);
+Boolean existsByEmail(String email);
+```
+
+---
+
+## ItemPostRepository
+
+Required methods:
+
+```java
+Page<ItemPost> findByTitleContainingIgnoreCase(...)
+```
+
+Use:
+
+* Pagination
+* Dynamic filtering
+
+---
+
+# 4.8 Validation Requirements
+
+---
+
+## Registration Validation
+
+| Rule     | Requirement       |
+| -------- | ----------------- |
+| Email    | Must be NU domain |
+| Password | Minimum 8 chars   |
+| Role     | Required          |
+
+---
+
+## Item Validation
+
+| Rule        | Requirement       |
+| ----------- | ----------------- |
+| Title       | Required          |
+| Description | Required          |
+| Image       | Optional          |
+| Status      | System controlled |
+
+---
+
+# 4.9 Exception Handling
+
+Create global exception handler.
+
+Required exceptions:
+
+* UserAlreadyExistsException
+* InvalidCredentialsException
+* ResourceNotFoundException
+* UnauthorizedActionException
+
+---
+
+# 4.10 Security Requirements
+
+---
+
+## Password Security
+
+Use:
+
+* BCryptPasswordEncoder
+
+---
+
+## Endpoint Security
+
+| Endpoint  | Access        |
+| --------- | ------------- |
+| /auth/**  | Public        |
+| /items/** | Authenticated |
+
+---
+
+## Authorization Rules
+
+Users:
+
+* Can edit only own posts
+* Cannot change other users' statuses
+
+---
+
+# 5. Frontend Low-Level Requirements (React + TypeScript)
+
+---
+
+# 5.1 Frontend Structure
+
+```text
+src/
+
+├── api/
+├── assets/
+├── components/
+├── hooks/
+├── layouts/
+├── pages/
+├── routes/
+├── services/
+├── types/
+├── utils/
+└── App.tsx
+```
+
+---
+
+# 5.2 Required Pages
+
+---
+
+## Authentication
+
+| Page         | Purpose           |
+| ------------ | ----------------- |
+| LoginPage    | User login        |
+| RegisterPage | User registration |
+
+---
+
+## Item Management
+
+| Page            | Purpose      |
+| --------------- | ------------ |
+| HomePage        | Item feed    |
+| ItemDetailsPage | View item    |
+| CreateItemPage  | Create post  |
+| ProfilePage     | View profile |
+
+---
+
+# 5.3 Required Components
+
+---
+
+## Shared Components
+
+| Component      | Purpose      |
+| -------------- | ------------ |
+| Navbar         | Navigation   |
+| Footer         | Footer       |
+| LoadingSpinner | Loading      |
+| SearchBar      | Search items |
+| FilterPanel    | Filter items |
+
+---
+
+## Item Components
+
+| Component   | Purpose              |
+| ----------- | -------------------- |
+| ItemCard    | Display item summary |
+| ItemForm    | Create/edit item     |
+| StatusBadge | Display status       |
+
+---
+
+# 5.4 Frontend State Management
+
+Use:
+
+* React Context API
+
+Avoid Redux for MVP.
+
+---
+
+# 5.5 API Integration
+
+Use:
+
+* Axios
+
+Create centralized API client.
+
+---
+
+# 5.6 Frontend Validation
+
+Use:
+
+* React Hook Form
+* Zod or Yup
+
+---
+
+# 5.7 Responsive Requirements
+
+System shall support:
+
+* Desktop
+* Tablet
+* Mobile
+
+---
+
+# 6. Database Design
+
+---
+
+# 6.1 users Table
+
+| Column     | Type           |
+| ---------- | -------------- |
+| id         | BIGINT         |
+| first_name | VARCHAR        |
+| last_name  | VARCHAR        |
+| email      | VARCHAR UNIQUE |
+| password   | VARCHAR        |
+| role       | VARCHAR        |
+| teams_link | TEXT           |
+| created_at | TIMESTAMP      |
+
+---
+
+# 6.2 item_posts Table
+
+| Column              | Type      |
+| ------------------- | --------- |
+| id                  | BIGINT    |
+| title               | VARCHAR   |
+| color               | VARCHAR   |
+| description         | TEXT      |
+| last_known_location | VARCHAR   |
+| claim_location      | VARCHAR   |
+| additional_details  | TEXT      |
+| image_url           | TEXT      |
+| status              | VARCHAR   |
+| created_at          | TIMESTAMP |
+| created_by          | BIGINT FK |
+
+---
+
+# 7. Design Patterns Used
+
+| Pattern            | Usage                 |
+| ------------------ | --------------------- |
+| Repository Pattern | Database abstraction  |
+| DTO Pattern        | API data transfer     |
+| Singleton          | Spring Beans          |
+| Builder Pattern    | DTO creation          |
+| Strategy Pattern   | Future search filters |
+| Factory Pattern    | Future role creation  |
+
+---
+
+# 8. OOP Requirements
+
+---
+
+# Encapsulation
+
+Entities must:
+
+* Use private fields
+* Use getters/setters
+
+---
+
+# Abstraction
+
+Business logic must exist only inside services.
+
+Controllers:
+
+* Must not contain business logic.
+
+---
+
+# Inheritance
+
+Optional future enhancement:
+
+```text
+User
+├── Student
+├── Faculty
+└── Staff
+```
+
+For MVP:
+Use enums instead of subclasses to reduce complexity.
+
+---
+
+# Polymorphism
+
+Future enhancement:
+Different role permissions.
+
+---
+
+# 9. MVP Development Phases
+
+---
+
+# Phase 1 — Foundation
+
+Priority: Critical
+
+Tasks:
+
+* Setup backend project
+* Setup frontend project
+* Configure database
+* JWT authentication
+* User registration/login
+
+---
+
+# Phase 2 — Core Features
+
+Priority: Critical
+
+Tasks:
+
+* Create item posting
+* Image upload
+* Item listing
+* Search/filter
+* Item details page
+
+---
+
+# Phase 3 — Ownership & Status
+
+Priority: High
+
+Tasks:
+
+* Status updating
+* Ownership validation
+* Profile viewing
+* Teams link integration
+
+---
+
+# Phase 4 — Polish
+
+Priority: Medium
+
+Tasks:
+
+* Responsive UI
+* Validation improvements
+* Error handling
+* Loading states
+
+---
+
+# 10. Recommended MVP Tech Decisions
+
+| Concern        | Recommendation        |
+| -------------- | --------------------- |
+| Frontend       | React + TypeScript    |
+| Backend        | Spring Boot           |
+| Database       | PostgreSQL            |
+| ORM            | Spring Data JPA       |
+| Authentication | JWT                   |
+| File Storage   | Local storage first   |
+| Deployment     | Render/Railway/Vercel |
+| Styling        | Tailwind CSS          |
+
+---
+
+# 11. Explicit MVP Simplifications
+
+To avoid overengineering:
+
+DO NOT include yet:
+
+* Real-time chat
+* Push notifications
+* AI item matching
+* Email verification
+* Role-specific dashboards
+* Admin moderation
+* Complex RBAC
+* Microservices
+* WebSockets
+* OAuth login
+
+These can become Phase 2+ features after MVP stabilization.
