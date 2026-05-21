@@ -1,0 +1,722 @@
+# Bulldog Founds — Vibe Coding Context & OOP Engineering Guide
+
+## Project Identity
+
+### Project Name
+
+Bulldog Founds
+
+### Project Type
+
+Campus Lost-and-Found Web Application
+
+### Target Users
+
+Students, faculty, and staff of National University Laguna
+
+### Tech Stack
+
+* Frontend:
+
+  * React
+  * TypeScript
+  * Tailwind CSS
+* Backend:
+
+  * Spring Boot
+  * Java
+  * Spring Security
+  * JWT Authentication
+  * JPA/Hibernate
+* Database:
+
+  * PostgreSQL
+
+---
+
+# 1. Engineering Philosophy (The “Vibe”)
+
+This project should feel:
+
+* Clean
+* Predictable
+* Modular
+* Beginner-friendly
+* Professional
+* Scalable without being overengineered
+
+The coding style should prioritize:
+
+```text id="ztyy56"
+Readability > Cleverness
+Simplicity > Complexity
+Maintainability > Premature Optimization
+Consistency > Personal Style
+```
+
+---
+
+# 2. Core Development Mindset
+
+Every feature should answer:
+
+### 1. What responsibility does this class/component have?
+
+If there are multiple answers:
+→ split the class.
+
+---
+
+### 2. Does this logic belong here?
+
+Examples:
+
+* Controllers should NOT validate business rules
+* Repositories should NOT contain business logic
+* Components should NOT directly call fetch everywhere
+
+---
+
+### 3. Can another developer understand this in 30 seconds?
+
+If not:
+→ simplify naming or structure.
+
+---
+
+# 3. Golden Rules for Bulldog Founds
+
+---
+
+# RULE 1 — Thin Controllers
+
+Controllers only:
+
+* receive requests
+* validate input structure
+* call services
+* return responses
+
+---
+
+## GOOD
+
+```java id="1o83kj"
+@PostMapping
+public ResponseEntity<ItemResponse> createItem(
+    @Valid @RequestBody CreateItemRequest request
+) {
+    return ResponseEntity.ok(itemService.create(request));
+}
+```
+
+---
+
+## BAD
+
+```java id="ccp5mw"
+@PostMapping
+public ResponseEntity<?> createItem(...) {
+
+    // validation
+    // business logic
+    // SQL logic
+    // file upload
+    // status updates
+}
+```
+
+---
+
+# RULE 2 — Business Logic Lives in Services
+
+The service layer is the “brain” of the application.
+
+---
+
+## GOOD
+
+```java id="10qj8x"
+itemService.markAsResolved(itemId, userId);
+```
+
+---
+
+## BAD
+
+```java id="7bz2h4"
+repository.updateStatus(...);
+```
+
+inside controller.
+
+---
+
+# RULE 3 — Repositories Only Access Data
+
+Repositories should:
+
+* query database
+* save data
+* delete data
+
+Repositories should NOT:
+
+* validate users
+* compute business rules
+* send emails
+
+---
+
+# RULE 4 — One Class = One Responsibility
+
+---
+
+## GOOD
+
+```text id="4p8dl4"
+AuthService
+ItemService
+ImageService
+JwtService
+```
+
+---
+
+## BAD
+
+```text id="vv49df"
+SystemManager
+UtilityManager
+MainService
+```
+
+---
+
+# RULE 5 — Avoid “Magic Logic”
+
+Code should explain itself.
+
+---
+
+## BAD
+
+```java id="gk6cbn"
+if(x == 1)
+```
+
+---
+
+## GOOD
+
+```java id="of2c4s"
+if(status == ItemStatus.RESOLVED)
+```
+
+---
+
+# RULE 6 — Strong Naming Conventions
+
+---
+
+## Backend Naming
+
+| Type       | Convention        |
+| ---------- | ----------------- |
+| Entity     | User              |
+| DTO        | CreateItemRequest |
+| Service    | ItemService       |
+| Controller | AuthController    |
+| Repository | UserRepository    |
+
+---
+
+## Frontend Naming
+
+| Type      | Convention  |
+| --------- | ----------- |
+| Component | ItemCard    |
+| Page      | HomePage    |
+| Hook      | useAuth     |
+| Service   | authService |
+
+---
+
+# RULE 7 — Use DTOs Everywhere
+
+Never expose database entities directly.
+
+---
+
+## Correct Flow
+
+```text id="tulww1"
+Request DTO
+→ Service
+→ Entity
+→ Repository
+→ Response DTO
+```
+
+---
+
+# RULE 8 — Prefer Composition Over Inheritance
+
+Avoid deep inheritance.
+
+---
+
+## BAD
+
+```text id="r8mjto"
+User
+ └── Student
+      └── EngineeringStudent
+```
+
+---
+
+## BETTER
+
+```java id="c8dd2m"
+class User {
+    private UserRole role;
+}
+```
+
+---
+
+# RULE 9 — Keep Methods Small
+
+Methods should:
+
+* do one thing
+* have one clear purpose
+
+---
+
+## GOOD
+
+```java id="0ewcb8"
+validateOwnership()
+saveItem()
+generateToken()
+```
+
+---
+
+## BAD
+
+```java id="6mqthz"
+processEverything()
+```
+
+---
+
+# RULE 10 — Consistent Error Handling
+
+All API errors should follow ONE format.
+
+---
+
+## Standard Error Response
+
+```json id="4vj13y"
+{
+  "timestamp": "...",
+  "status": 400,
+  "message": "Invalid credentials"
+}
+```
+
+---
+
+# 4. Recommended Backend Coding Standards
+
+---
+
+# Entity Rules
+
+Entities should:
+
+* contain fields
+* contain relationships
+* avoid business logic
+
+---
+
+## GOOD ENTITY
+
+```java id="jlwmcg"
+@Entity
+public class ItemPost {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String title;
+
+    @Enumerated(EnumType.STRING)
+    private ItemStatus status;
+}
+```
+
+---
+
+# Service Rules
+
+Services:
+
+* contain business logic
+* coordinate repositories
+* enforce rules
+
+---
+
+## GOOD SERVICE
+
+```java id="v0mxgf"
+public void resolveItem(Long itemId, Long userId) {
+
+    ItemPost item = findItem(itemId);
+
+    validateOwnership(item, userId);
+
+    item.setStatus(ItemStatus.RESOLVED);
+
+    repository.save(item);
+}
+```
+
+---
+
+# Repository Rules
+
+Repositories should remain minimal.
+
+---
+
+## GOOD
+
+```java id="p9h9v8"
+Optional<User> findByEmail(String email);
+```
+
+---
+
+## BAD
+
+```java id="g9sqcl"
+void resolveAndNotifyAndAudit(...)
+```
+
+---
+
+# DTO Rules
+
+Use DTOs for:
+
+* requests
+* responses
+
+---
+
+## GOOD
+
+```java id="84fd4y"
+CreateItemRequest
+ItemResponse
+LoginRequest
+AuthResponse
+```
+
+---
+
+# Validation Rules
+
+Use annotations.
+
+---
+
+## GOOD
+
+```java id="jlwmx7"
+@NotBlank
+private String title;
+```
+
+---
+
+# BAD
+
+Manual validation everywhere.
+
+---
+
+# 5. Recommended Frontend Vibe
+
+The frontend should feel:
+
+* minimal
+* responsive
+* organized
+* calm
+* easy to navigate
+
+---
+
+# Frontend Architecture Rules
+
+---
+
+# RULE 1 — Pages Compose Components
+
+Pages:
+
+* organize layout
+
+Components:
+
+* handle reusable UI
+
+---
+
+## GOOD
+
+```text id="rclxvv"
+HomePage
+ ├── SearchBar
+ ├── FilterPanel
+ └── ItemGrid
+```
+
+---
+
+# RULE 2 — Avoid Massive Components
+
+If a component exceeds:
+
+* 200–300 lines
+* multiple responsibilities
+
+Split it.
+
+---
+
+# RULE 3 — Centralize API Calls
+
+---
+
+## GOOD
+
+```text id="m3yzut"
+services/itemService.ts
+```
+
+---
+
+## BAD
+
+```text id="fwb3gs"
+fetch(...)
+```
+
+inside every component.
+
+---
+
+# RULE 4 — Strong TypeScript Typing
+
+Avoid:
+
+```typescript id="mw2f3m"
+any
+```
+
+Prefer:
+
+```typescript id="rzv84h"
+interface ItemPost
+```
+
+---
+
+# RULE 5 — Reusable UI Components
+
+Create reusable:
+
+* buttons
+* modals
+* cards
+* badges
+* inputs
+
+---
+
+# 6. Folder Structure Vibe
+
+---
+
+# Backend
+
+```text id="aqblsi"
+controller/
+service/
+repository/
+entity/
+dto/
+security/
+exception/
+```
+
+Simple.
+Predictable.
+No unnecessary nesting.
+
+---
+
+# Frontend
+
+```text id="myj8wb"
+pages/
+components/
+services/
+hooks/
+types/
+```
+
+Avoid:
+
+* deeply nested folders
+* confusing names
+
+---
+
+# 7. MVP Engineering Discipline
+
+---
+
+# PRIORITIZE THIS
+
+## FIRST
+
+* Authentication
+* Posting items
+* Viewing items
+* Search
+* Status updates
+
+---
+
+## SECOND
+
+* Better UI
+* Pagination
+* Profile pages
+
+---
+
+## LATER
+
+* Notifications
+* Real-time systems
+* AI features
+* Admin dashboards
+
+---
+
+# 8. Team Coding Agreements
+
+---
+
+# Every Pull Request Should Ask:
+
+### 1. Is this readable?
+
+### 2. Is this overengineered?
+
+### 3. Does this violate SRP?
+
+### 4. Can this logic be reused?
+
+### 5. Is this testable?
+
+---
+
+# 9. Recommended Design Patterns for Bulldog Founds
+
+| Pattern            | Purpose                 |
+| ------------------ | ----------------------- |
+| Repository Pattern | Database abstraction    |
+| DTO Pattern        | API contracts           |
+| Builder Pattern    | Complex object creation |
+| Strategy Pattern   | Future filtering/search |
+| Factory Pattern    | Future role creation    |
+| Singleton          | Spring services         |
+
+Avoid unnecessary patterns early.
+
+---
+
+# 10. Anti-Patterns to Avoid
+
+---
+
+# BAD PRACTICE — God Classes
+
+```java id="jnt6kg"
+MainSystemService
+```
+
+doing everything.
+
+---
+
+# BAD PRACTICE — Fat Controllers
+
+Controllers should NOT:
+
+* validate ownership
+* process files
+* handle business logic
+
+---
+
+# BAD PRACTICE — Direct Database Exposure
+
+Never return entities directly to frontend.
+
+---
+
+# BAD PRACTICE — Duplicate Logic
+
+If logic repeats:
+→ extract helper/service.
+
+---
+
+# BAD PRACTICE — Premature Microservices
+
+This project should remain:
+
+* monolithic
+* modular
+* clean
+
+for MVP.
+
+---
+
+# 11. Ideal Bulldog Founds Engineering Identity
+
+The final codebase should feel:
+
+```text id="e4vpr9"
+Simple enough for students
+Clean enough for professionals
+Structured enough for scaling
+Stable enough for production
+```
+
+That is the target engineering vibe.
