@@ -1,319 +1,223 @@
 # Bulldog Founds — Team Changelog
 
-## [2026-05-29] Item Management Implementation (Phase 3) — Acosta
-
-### Added
-
-#### Item Management Features
-- **Services:**
-  - `ItemService.java` — Complete CRUD operations:
-    - Create items (createItem)
-    - Get all items with pagination (getAllItems)
-    - Get item by ID (getItemById)
-    - Search items by keyword (searchItems)
-    - Filter by color (filterByColor)
-    - Filter by status (filterByStatus)
-    - Combined search & filter (searchAndFilter)
-    - Get user's items (getUserItems)
-    - Update item details (updateItem)
-    - Update item status (updateItemStatus)
-    - Delete item (deleteItem)
-
-- **Controllers:**
-  - `ItemController.java` — REST API endpoints:
-    - POST /api/items — Create item
-    - GET /api/items — List all items with pagination
-    - GET /api/items/{id} — Get item details
-    - GET /api/items/search — Search by keyword
-    - GET /api/items/filter/color — Filter by color
-    - GET /api/items/filter/status — Filter by status
-    - GET /api/items/search/advanced — Combined search/filter
-    - GET /api/items/my-items — Get user's items
-    - PUT /api/items/{id} — Update item
-    - PATCH /api/items/{id}/status — Update status
-    - DELETE /api/items/{id} — Delete item
-
-- **DTOs:**
-  - `CreateItemRequest.java` — Create item DTO with validation
-  - `ItemResponse.java` — Item details response with full metadata
-  - `UpdateItemRequest.java` — Update item DTO (optional fields)
-  - `UpdateItemStatusRequest.java` — Update status DTO
-
-- **Tests:**
-  - `ItemServiceTest.java` — 19 unit tests covering:
-    - ✅ Create item (success, user not found)
-    - ✅ Get item by ID (success, not found)
-    - ✅ Get all items (pagination)
-    - ✅ Search items
-    - ✅ Filter by color, status
-    - ✅ Search & filter combined
-    - ✅ Get user items
-    - ✅ Update item (success, not found, unauthorized)
-    - ✅ Update status (success, unauthorized)
-    - ✅ Delete item (success, not found, unauthorized)
-
-### Key Features
-✅ **Pagination** — All list endpoints support page, size, sort
-✅ **Authorization** — Only item owners can modify/delete
-✅ **Search & Filter** — Keyword search, color filter, status filter, combined
-✅ **Validation** — Input validation on all DTOs
-✅ **Exception Handling** — Proper error responses
-✅ **Logging** — Comprehensive logging for debugging
-✅ **Performance** — Read-only transactions for queries
-
-### Engineering Principles Applied
-✅ Thin Controllers — Controllers route and validate only  
-✅ Business Logic in Services — All CRUD in ItemService  
-✅ DTO Pattern — Clean entity/DTO separation  
-✅ SRP — Each method has single responsibility  
-✅ Authorization Checks — Ownership validation before updates  
-✅ Consistent Error Handling — Uses GlobalExceptionHandler  
-✅ Readable Code — Clear method names and logic  
-✅ Proper Transactions — @Transactional on service methods  
-
-### Test Results
-- ✅ 19/19 ItemService tests passing
-- ✅ Total test suite: 32/32 tests passing
-- ✅ All phases (Auth + JWT + Item) working together
-
-### MVP Completion Status
-| Feature | Status | Tests |
-|---------|--------|-------|
-| Authentication | ✅ | 6 |
-| JWT Security | ✅ | 7 |
-| Item CRUD | ✅ | 19 |
-| **File Upload** | **✅** | **9** |
-| **Total** | **✅ READY** | **41** |
-
-### What's Next (MVP Priorities)
-1. ✅ Authentication (DONE)
-2. ✅ Item Management (DONE)
-3. ✅ **Image Upload** — File handling for item images (DONE)
-4. ⬅️ **Frontend Integration** — React TypeScript UI
-5. ⬅️ **Search Optimization** — Elasticsearch or full-text search
-
-### API Examples
-
-```bash
-# Create item
-POST /api/items
-Authorization: Bearer <jwt-token>
-{
-  "title": "Lost Keys",
-  "color": "Silver",
-  "description": "Lost near the library",
-  "lastKnownLocation": "Library",
-  "claimLocation": "Lost and Found",
-  "additionalDetails": "Blue strap"
-}
-
-# Search items
-GET /api/items/search?keyword=keys&page=0&size=10
-
-# Filter by status
-GET /api/items/filter/status?status=UNRESOLVED&page=0&size=10
-
-# Update item status
-PATCH /api/items/1/status
-{
-  "status": "RESOLVED"
-}
-```
+All changes are listed in chronological order from oldest to newest.
 
 ---
 
-## [2026-05-29] Image Upload Implementation (Phase 4) — Acosta
+## [2026-05-29] Phase 1 & 2 — Foundation, Entities, Auth & JWT — Acosta
 
-### Added
-
-#### File Upload Features
-- **Services:**
-  - `FileService.java` — File handling service:
-    - `saveFile(MultipartFile)` — Save uploaded file with unique filename
-    - `deleteFile(String filePath)` — Delete file by path
-    - File validation: size (max 5MB), type (JPEG, PNG, GIF, WebP)
-
-- **Controllers:**
-  - `ItemController.java` — Enhanced endpoints:
-    - `POST /api/items` (multipart) — Create item with optional file upload
-    - `POST /api/items` (JSON) — Create item without file
-    - `DELETE /api/items/{id}` — Enhanced to delete associated images
-
-- **Configuration:**
-  - Updated `application.properties`:
-    - `file.upload-dir=./uploads` — Local storage directory
-    - `spring.servlet.multipart.max-file-size=5MB`
-    - `spring.servlet.multipart.max-request-size=5MB`
-
-- **Tests:**
-  - `FileServiceTest.java` — 9 unit tests covering:
-    - ✅ Save file (JPEG, PNG, GIF, WebP)
-    - ✅ File validation (size, type)
-    - ✅ Delete file (existing, non-existent)
-    - ✅ Error handling (null, empty, invalid type)
-
-### Modified
-
-- **ItemController.java:**
-  - Added FileService dependency injection
-  - Implemented multipart/form-data endpoint for file uploads
-  - Updated DELETE to clean up associated image files
-  - Maintains backward compatibility with JSON-only requests
-
-### API Examples
-
-```bash
-# Create item with file upload (multipart)
-POST /api/items
-Content-Type: multipart/form-data
-Authorization: Bearer <jwt-token>
-
-Form data:
-- title: "Lost Wallet"
-- color: "Brown"
-- description: "Lost at the student center on May 29"
-- lastKnownLocation: "Student Center"
-- claimLocation: "Office"
-- additionalDetails: "Has student ID inside"
-- imageFile: <binary file, max 5MB>
-
-# Create item without file (JSON)
-POST /api/items
-Content-Type: application/json
-Authorization: Bearer <jwt-token>
-{
-  "title": "Lost Keys",
-  "color": "Silver",
-  "description": "Lost near the library",
-  "lastKnownLocation": "Library",
-  "claimLocation": "Lost and Found",
-  "additionalDetails": "Blue strap"
-}
-
-# Delete item (including associated image)
-DELETE /api/items/1
-Authorization: Bearer <jwt-token>
-```
+### Summary
+Set up the entire backend foundation: project structure, core entities, enums, repositories, JWT security, authentication service, and all related DTOs and exception handling.
 
 ---
 
-## [2026-05-29] Item Management Implementation (Phase 3) — Acosta
-
 ### Added
 
-#### Item Management Features
-- **Services:**
-  - `ItemService.java` — Complete CRUD operations:
-    - Create items (createItem)
-    - Get all items with pagination (getAllItems)
-    - Get item by ID (getItemById)
-    - Search items by keyword (searchItems)
-    - Filter by color (filterByColor)
-    - Filter by status (filterByStatus)
-    - Combined search & filter (searchAndFilter)
-    - Get user's items (getUserItems)
-    - Update item details (updateItem)
-    - Update item status (updateItemStatus)
-    - Delete item (deleteItem)
+#### Project Structure
+- Initialized Spring Boot project with proper layered architecture
+- Package structure: `controller/`, `service/`, `repository/`, `entity/`, `dto/`, `enums/`, `exception/`, `security/`, `config/`
 
-- **Controllers:**
-  - `ItemController.java` — REST API endpoints:
-    - POST /api/items — Create item
-    - GET /api/items — List all items with pagination
-    - GET /api/items/{id} — Get item details
-    - GET /api/items/search — Search by keyword
-    - GET /api/items/filter/color — Filter by color
-    - GET /api/items/filter/status — Filter by status
-    - GET /api/items/search/advanced — Combined search/filter
-    - GET /api/items/my-items — Get user's items
-    - PUT /api/items/{id} — Update item
-    - PATCH /api/items/{id}/status — Update status
-    - DELETE /api/items/{id} — Delete item
+#### Enums
+- `UserRole.java` — `STUDENT`, `FACULTY`, `STAFF`
+- `ItemStatus.java` — `UNRESOLVED`, `PENDING_CLAIM`, `RESOLVED`
 
-- **DTOs:**
-  - `CreateItemRequest.java` — Create item DTO with validation
-  - `ItemResponse.java` — Item details response with full metadata
-  - `UpdateItemRequest.java` — Update item DTO (optional fields)
-  - `UpdateItemStatusRequest.java` — Update status DTO
+#### Entities
+- `User.java` — User profile with encapsulated fields, JPA annotations, BCrypt-compatible password field, `getFullName()` helper, `@OneToMany` relationship to `ItemPost`
+- `ItemPost.java` — Item post with all required fields, `@ManyToOne` to `User`, `@PreUpdate` for `updatedAt` auto-update, default status of `UNRESOLVED`
 
-- **Tests:**
-  - `ItemServiceTest.java` — 19 unit tests covering:
-    - ✅ Create item (success, user not found)
-    - ✅ Get item by ID (success, not found)
-    - ✅ Get all items (pagination)
-    - ✅ Search items
-    - ✅ Filter by color, status
-    - ✅ Search & filter combined
-    - ✅ Get user items
+#### Repositories
+- `UserRepository.java` — `findByEmail(String)`, `existsByEmail(String)`
+- `ItemPostRepository.java` — `findByTitleContainingIgnoreCase`, `findByColorContainingIgnoreCase`, `findByStatus`, `findByCreatedByIdOrderByCreatedAtDesc`, combined search by title + color
 
-### Added
+#### Exception Classes
+- `UserAlreadyExistsException.java`
+- `InvalidCredentialsException.java`
+- `ResourceNotFoundException.java`
+- `UnauthorizedActionException.java`
+- `GlobalExceptionHandler.java` — Centralized handler returning standard `{ timestamp, status, message, error }` format for all exceptions including validation errors
 
-#### Phase 1: Core Entities
-- **Enums:**
-  - `UserRole.java` — STUDENT, FACULTY, STAFF roles
-  - `ItemStatus.java` — UNRESOLVED, PENDING_CLAIM, RESOLVED statuses
+#### Security & JWT
+- `JwtTokenProvider.java` — Token generation, validation, claim extraction using HS256; configurable secret and expiration via `application.properties`
+- `JwtAuthenticationFilter.java` — Per-request JWT validation filter
+- `SecurityConfig.java` — Stateless JWT security; `/api/auth/**` public; `/api/items/**` requires authentication; BCrypt password encoder bean
 
-- **Entities:**
-  - `User.java` — User profile with JPA annotations, encapsulation, validation
-  - `ItemPost.java` — Item post entity with relationships to User
+#### DTOs
+- `LoginRequest.java`
+- `RegisterRequest.java` — with `@NotBlank`, `@Email`, `@Size` validation
+- `UserResponse.java`
+- `AuthResponse.java` — includes `token`, `tokenType: "Bearer"`, `expiresIn`, and full `UserResponse`
 
-- **Repositories:**
-  - `UserRepository.java` — findByEmail, existsByEmail methods
-  - `ItemPostRepository.java` — Search, filter, pagination methods
+#### Services
+- `AuthService.java`:
+  - `register()` — checks email uniqueness, encodes password with BCrypt, saves user, generates JWT
+  - `login()` — validates credentials, generates JWT
 
-#### Phase 2: Authentication Foundation
-- **Exception Handling:**
-  - `UserAlreadyExistsException.java` — Custom exception for duplicate email
-  - `InvalidCredentialsException.java` — Custom exception for bad credentials
-  - `ResourceNotFoundException.java` — Custom exception for missing resources
-  - `UnauthorizedActionException.java` — Custom exception for forbidden actions
-  - `GlobalExceptionHandler.java` — Centralized error response formatting
+#### Controllers
+- `AuthController.java`:
+  - `POST /api/auth/register` → 201 Created with `AuthResponse`
+  - `POST /api/auth/login` → 200 OK with `AuthResponse`
 
-- **Security & JWT:**
-  - `JwtTokenProvider.java` — Token generation, validation, claim extraction
-  - `JwtAuthenticationFilter.java` — JWT authentication filter
-  - `SecurityConfig.java` — Spring Security configuration with JWT
+#### Configuration
+- `application.properties`:
+  - PostgreSQL datasource configured (`localhost:5432/bulldogfounds`)
+  - `spring.jpa.hibernate.ddl-auto=update`
+  - JWT secret and 24-hour expiration (`86400000ms`)
+  - File upload config (`./uploads`, max 5MB)
+  - Server on port 8080
 
-- **DTOs:**
-  - `LoginRequest.java` — Login credentials DTO
-  - `RegisterRequest.java` — Registration details DTO
-  - `UserResponse.java` — User information DTO
-  - `AuthResponse.java` — Authentication response with JWT token
+#### Tests
+- `AuthServiceTest.java` — 6 unit tests: register success, duplicate email, login success, invalid password, user not found
+- `JwtTokenProviderTest.java` — 7 unit tests: token generation, subject extraction, expiration, validation, invalid token rejection
 
-- **Services:**
-  - `AuthService.java` — User registration, login, token generation
-
-- **Controllers:**
-  - `AuthController.java` — POST /api/auth/register, POST /api/auth/login endpoints
-
-- **Tests:**
-  - `AuthServiceTest.java` — 6 unit tests covering registration and login scenarios
-  - `JwtTokenProviderTest.java` — 7 unit tests for token operations
-
-### Configuration Updates
-- **application.properties:**
-  - Added JWT secret key
-  - Added JWT expiration (24 hours)
-  - Added logging configuration
-  - Added server port and context path
+---
 
 ### Engineering Principles Applied
-✅ Thin Controllers — Controllers only handle requests/responses  
-✅ Business Logic in Services — All logic in AuthService  
-✅ Encapsulation — Private fields with getters/setters  
-✅ SRP — One responsibility per class  
-✅ DTO Pattern — No entity exposure to API  
-✅ Consistent Error Handling — Global exception handler  
-✅ Strong Naming — Clear, purposeful class names  
-✅ No Magic Logic — Explicit validation and error messages  
-✅ Modular Structure — Clean folder organization  
+- Thin controllers — no business logic in `AuthController`
+- Business logic isolated in `AuthService`
+- DTO pattern — entities never exposed directly to API
+- SRP — one responsibility per class
+- Consistent error format via `GlobalExceptionHandler`
+- BCrypt for password security
+- Stateless JWT — no server-side sessions
 
-### Testing Coverage
-- AuthService: Registration success, duplicate email, login success, invalid credentials
-- JwtTokenProvider: Token generation, extraction, validation, expiration, different tokens
+---
 
-### Ready for
-- ✅ Building with Maven
-- ✅ PostgreSQL integration tests
-- ✅ Manual API testing with Postman
-- ✅ Frontend integration
+### Known Issues / TODOs
+- ⚠️ `RegisterRequest` does not enforce NU Laguna email domain (`@nu-laguna.edu.ph`) — required by Project Requirements §4.8
+- ⚠️ JWT secret in `application.properties` is a placeholder — must be changed before production
+
+---
+
+## [2026-05-29] Phase 3 — Item Management (CRUD, Search, Filter) — Acosta
+
+### Summary
+Implemented full item post lifecycle: creation, retrieval, search, filtering, status updates, ownership-based editing and deletion.
+
+---
+
+### Added
+
+#### DTOs
+- `CreateItemRequest.java` — validated fields: `title`, `color`, `description`, `lastKnownLocation`, `claimLocation`, optional `additionalDetails`
+- `ItemResponse.java` — full item metadata including `createdById`, `createdByName`, `createdByEmail`, `createdByTeamsLink`
+- `UpdateItemRequest.java` — all fields optional (partial update support)
+- `UpdateItemStatusRequest.java` — single `status` field
+
+#### Services
+- `ItemService.java`:
+  - `createItem(userId, request)` — looks up user, builds and saves `ItemPost`
+  - `getAllItems(pageable)` — paginated, read-only
+  - `getItemById(id)` — throws `ResourceNotFoundException` if missing
+  - `searchItems(keyword, pageable)` — title keyword search
+  - `filterByColor(color, pageable)` — color filter
+  - `filterByStatus(status, pageable)` — status filter
+  - `searchAndFilter(keyword, color, pageable)` — combined title + color filter
+  - `getUserItems(userId, pageable)` — items by owner, sorted by `createdAt DESC`
+  - `updateItem(id, userId, request)` — ownership check, partial field update
+  - `updateItemStatus(id, userId, request)` — ownership check, status change
+  - `deleteItem(id, userId)` — ownership check, hard delete
+
+#### Controllers
+- `ItemController.java`:
+  - `POST /api/items` (JSON) — create item
+  - `GET /api/items` — list all (paginated, sortable)
+  - `GET /api/items/{id}` — get single item
+  - `GET /api/items/search?keyword=` — keyword search
+  - `GET /api/items/filter/color?color=` — color filter
+  - `GET /api/items/filter/status?status=` — status filter
+  - `GET /api/items/search/advanced?keyword=&color=` — combined search
+  - `GET /api/items/my-items` — authenticated user's posts
+  - `PUT /api/items/{id}` — update item
+  - `PATCH /api/items/{id}/status` — update status
+  - `DELETE /api/items/{id}` — delete item (also removes associated image)
+
+#### Tests
+- `ItemServiceTest.java` — 19 unit tests covering all service methods including authorization failure scenarios
+
+---
+
+### Engineering Principles Applied
+- Thin controllers — pagination built in controller, all logic in service
+- Ownership validation before any mutation (`updateItem`, `updateItemStatus`, `deleteItem`)
+- Read-only `@Transactional` on all query methods
+- DTO mapping via private `mapToResponse()` — no entity leakage
+
+---
+
+### Known Issues / TODOs
+- ⚠️ `extractUserIdFromAuth()` in `ItemController` hardcodes `return 1L` — **this is a critical bug**. User ID is not actually extracted from the JWT; all item operations will use user ID `1` regardless of who is authenticated. Must be fixed before frontend integration.
+- ⚠️ `searchAndFilter` only combines title + color, not status — changelog previously claimed status was included in combined search but it is not
+
+---
+
+## [2026-05-29] Phase 4 — Image Upload (File Storage) — Acosta
+
+### Summary
+Added local file storage for item images. Items can now be created with an optional image via multipart form upload.
+
+---
+
+### Added
+
+#### Services
+- `FileService.java`:
+  - `saveFile(MultipartFile)` — validates file, generates UUID filename, saves to `./uploads/`
+  - `deleteFile(String filePath)` — silently deletes file if it exists
+  - Validation: max 5MB, allowed types JPEG, PNG, GIF, WebP
+
+#### Controllers (Modified)
+- `ItemController.java` — added `POST /api/items` multipart endpoint:
+  - Accepts form fields + optional `imageFile`
+  - Calls `FileService.saveFile()` if file present
+  - Sets `imageUrl` on returned `ItemResponse`
+  - `DELETE /api/items/{id}` now also calls `FileService.deleteFile()` to clean up image
+
+#### Configuration (Modified)
+- `application.properties` — `file.upload-dir=./uploads`, `spring.servlet.multipart.max-file-size=5MB`, `spring.servlet.multipart.max-request-size=5MB`
+
+#### Tests
+- `FileServiceTest.java` — 9 unit tests: save JPEG/PNG/GIF/WebP, reject oversized file, reject invalid type, delete existing file, delete non-existent file, handle null/empty input
+
+---
+
+### Engineering Principles Applied
+- SRP — `FileService` handles only file I/O; `ItemService` handles only item logic
+- Validation centralized in `FileService.validateFile()`
+- Backward compatibility — JSON-only `POST /api/items` endpoint still works
+
+---
+
+### Known Issues / TODOs
+- ⚠️ `FileService` throws `InvalidCredentialsException` for file validation errors — this is semantically wrong. Should throw a dedicated `InvalidFileException` or `BadRequestException`
+- ⚠️ Image URL is set on the `ItemResponse` after creation but **not persisted** to the database. The `createItem()` call in `ItemController` saves the item first, then sets `imageUrl` on the DTO only — the database row will have a null `imageUrl`. This is a bug.
+- ⚠️ No static resource serving configured — uploaded images cannot be accessed via HTTP URL yet
+
+---
+
+## Overall MVP Completion Status
+
+| Feature | Implemented | Tests | Notes |
+|---|---|---|---|
+| Core Entities (User, ItemPost) | ✅ | — | Enums, relationships, validation |
+| User Registration | ✅ | ✅ (AuthService) | Missing NU email domain validation |
+| User Login + JWT | ✅ | ✅ (AuthService + JWT) | 24hr token, HS256 |
+| Spring Security Config | ✅ | — | Stateless, public/private routes |
+| Item CRUD | ✅ | ✅ (ItemService) | Full ownership checks |
+| Search & Filter | ✅ | ✅ | Keyword, color, status, combined |
+| Image Upload | ✅ | ✅ (FileService) | Local storage only |
+| Exception Handling | ✅ | — | Global handler, standard format |
+| Input Validation | ✅ | — | @Valid on all DTOs |
+| PostgreSQL Config | ✅ | — | Configured, needs real password |
+| Frontend (React + TS) | ✅ | — | Not yet started |
+| Role-based Authorization | 🔲 | — | Enum defined, logic not enforced |
+| Pagination | ✅ | — | All list endpoints paginated |
+| User Profile Endpoint | 🔲 | — | Not yet implemented |
+
+---
+
+## Critical Bugs to Fix Before Frontend Integration
+
+1. **`ItemController.extractUserIdFromAuth()` returns hardcoded `1L`** — all mutations will be attributed to user ID 1 regardless of logged-in user. Fix by loading user from DB by email extracted from JWT.
+2. **Image URL not persisted to DB** — `imageUrl` is set on the response DTO but not saved to the `ItemPost` entity after file upload.
+3. **`FileService` uses `InvalidCredentialsException` for file errors** — misleading and incorrect; replace with a proper exception type.
+4. **Missing NU Laguna email domain validation** — `RegisterRequest` accepts any email; should enforce `@nu-laguna.edu.ph` domain per requirements.
