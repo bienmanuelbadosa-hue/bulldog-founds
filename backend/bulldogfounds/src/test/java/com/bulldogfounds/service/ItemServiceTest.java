@@ -117,6 +117,44 @@ class ItemServiceTest {
     }
 
     @Test
+    void testCreateItemWithImageUrl() {
+        // Arrange — request includes an imageUrl (set by controller after file upload)
+        ItemPost itemWithImage = ItemPost.builder()
+                .id(2L)
+                .title("Lost Wallet")
+                .color("Brown")
+                .description("Lost wallet near cafeteria with cards inside")
+                .lastKnownLocation("Cafeteria")
+                .claimLocation("Lost and Found Office")
+                .imageUrl("./uploads/some-uuid.jpg")
+                .status(ItemStatus.UNRESOLVED)
+                .createdBy(testUser)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        CreateItemRequest requestWithImage = CreateItemRequest.builder()
+                .title("Lost Wallet")
+                .color("Brown")
+                .description("Lost wallet near cafeteria with cards inside")
+                .lastKnownLocation("Cafeteria")
+                .claimLocation("Lost and Found Office")
+                .imageUrl("./uploads/some-uuid.jpg")
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(itemRepository.save(any(ItemPost.class))).thenReturn(itemWithImage);
+
+        // Act
+        ItemResponse response = itemService.createItem(1L, requestWithImage);
+
+        // Assert — imageUrl is present in the response (was persisted via entity)
+        assertThat(response).isNotNull();
+        assertThat(response.getImageUrl()).isEqualTo("./uploads/some-uuid.jpg");
+        verify(userRepository).findById(1L);
+        verify(itemRepository).save(any(ItemPost.class));
+    }
+
+    @Test
     void testGetItemByIdSuccess() {
         // Arrange
         when(itemRepository.findById(1L)).thenReturn(Optional.of(testItem));

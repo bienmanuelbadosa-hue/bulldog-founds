@@ -51,6 +51,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle InvalidFileException.
+     * Returned when a file upload fails validation (wrong type, too large, etc.)
+     */
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFile(InvalidFileException ex) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .error("Invalid File")
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
      * Handle ResourceNotFoundException.
      */
     @ExceptionHandler(ResourceNotFoundException.class)

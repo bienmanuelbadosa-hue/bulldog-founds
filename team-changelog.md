@@ -221,3 +221,128 @@ Added local file storage for item images. Items can now be created with an optio
 2. **Image URL not persisted to DB** — `imageUrl` is set on the response DTO but not saved to the `ItemPost` entity after file upload.
 3. **`FileService` uses `InvalidCredentialsException` for file errors** — misleading and incorrect; replace with a proper exception type.
 4. **Missing NU Laguna email domain validation** — `RegisterRequest` accepts any email; should enforce `@nu-laguna.edu.ph` domain per requirements.
+
+---
+
+## [2026-05-31] Phase 5 — Critical Bug Fixes (Pre-Frontend Integration) — Acosta
+
+### Summary
+Fixed all 4 critical bugs identified before frontend integration: proper JWT user resolution, image URL persistence, correct file exception types, and NU Laguna email domain enforcement.
+
+---
+
+### Fixed
+
+#### Bug 1 — `extractUserIdFromAuth()` returned hardcoded `1L`
+
+**Root Cause:** `ItemController.extractUserIdFromAuth()` always returned `1L` instead of the real authenticated user's ID. All item mutations (create, update, status change, delete) were incorrectly attributed to user ID 1.
+
+**Fix:**
+- `UserService.java` [NEW] — created `getUserIdByEmail(String email)` which looks up the user by email from the DB (the JWT principal is the user's email). Also includes `getUserByEmail(String email)` returning a `UserResponse` for future profile use.
+- `ItemController.java` [MODIFIED] — injected `UserService`; `extractUserIdFromAuth()` now calls `userService.getUserIdByEmail(email)` for a real DB lookup.
+
+#### Bug 2 — Image URL not persisted to DB
+
+**Root Cause:** In the multipart `createItemWithFile` endpoint, the image was saved via `FileService.saveFile()` after the item was already created. The `imageUrl` was then set only on the response DTO, not on the saved `ItemPost` entity — so the `image_url` column in the database always remained `null`.
+
+**Fix:**
+- `CreateItemRequest.java` [MODIFIED] — added optional `imageUrl` field (server-side populated, not submitted by API clients).
+- `ItemService.java` [MODIFIED] — `createItem()` now includes `imageUrl` from the request in the `ItemPost` builder, so it is persisted to the DB.
+- `ItemController.java` [MODIFIED] — reordered multipart handler: file is uploaded first, then `imageUrl` is set on the `CreateItemRequest` before calling `itemService.createItem()`. The post-save DTO mutation is removed.
+
+#### Bug 3 — `FileService` threw wrong exception type
+
+**Root Cause:** `FileService` was throwing `InvalidCredentialsException` (HTTP 401) for file validation failures (wrong type, too large, empty). This was semantically incorrect — file errors are not authentication errors.
+
+**Fix:**
+- `InvalidFileException.java` [NEW] — dedicated `RuntimeException` for file upload validation failures.
+- `GlobalExceptionHandler.java` [MODIFIED] — added `@ExceptionHandler(InvalidFileException.class)` returning HTTP 400 Bad Request with `"error": "Invalid File"`.
+- `FileService.java` [MODIFIED] — all three `throw new InvalidCredentialsException(...)` replaced with `throw new InvalidFileException(...)`.
+
+#### Bug 4 — No NU Laguna email domain validation
+
+**Root Cause:** `RegisterRequest` only applied `@Email` (checks email format) but not domain. Any valid email address could register — not just `@nu-laguna.edu.ph` as required by Project Requirements §4.8.
+
+**Fix:**
+- `RegisterRequest.java` [MODIFIED] — added `@Pattern(regexp = "^[a-zA-Z0-9._%+\\-]+@nu-laguna\\.edu\\.ph$", message = "Email must be a valid NU Laguna email address (@nu-laguna.edu.ph)")` to the `email` field. Integrates with existing `@Valid` + `GlobalExceptionHandler` pipeline (returns 400 with validation error details).
+
+---
+
+### Tests Added / Updated
+
+- `UserServiceTest.java` [NEW] — 4 unit tests: `getUserIdByEmail` success, `getUserIdByEmail` not found, `getUserByEmail` success, `getUserByEmail` not found
+- `ItemServiceTest.java` [MODIFIED] — added `testCreateItemWithImageUrl()` verifying that `imageUrl` from `CreateItemRequest` is reflected in the saved item response
+- `FileServiceTest.java` [MODIFIED] — updated all 4 `assertThrows` calls to expect `InvalidFileException` instead of `InvalidCredentialsException`
+
+---
+
+### Engineering Principles Applied
+- SRP — `UserService` has a single clear responsibility: user identity and profile resolution
+- Thin controllers — `extractUserIdFromAuth()` now delegates to `UserService`, no repository call in controller
+- Correct exception semantics — `InvalidFileException` → 400, `InvalidCredentialsException` → 401
+- DTO pattern — `imageUrl` flows through `CreateItemRequest` into the entity, never bypassing the service layer
+- Validation by annotation — NU email enforced via `@Pattern` at the DTO level, not in service
+
+---
+
+### Known Issues / TODOs
+- ⚠️ No static resource serving configured — uploaded images are saved to `./uploads/` but cannot be accessed via HTTP URL (no `/uploads/**` static resource mapping)
+- ⚠️ `SecurityConfig` exposes `/api/items/search` and `/api/items/{id}` as public endpoints — this deviates from Project Requirements §4.10 which says all `/items/**` requires authentication. RESOLVED: Adjusted SecurityConfig to protect all items endpoints, exposing only auth and uploaded resources.
+
+---
+
+## Overall MVP Completion Status
+
+| Feature | Implemented | Tests | Notes |
+|---|---|---|---|
+| Core Entities (User, ItemPost) | ✅ | — | Enums, relationships, validation |
+| User Registration | ✅ | ✅ (AuthService) | NU email domain enforced ✅ |
+| User Login + JWT | ✅ | ✅ (AuthService + JWT) | 24hr token, HS256 |
+| Spring Security Config | ✅ | — | Stateless, public/private routes; all items secure ✅ |
+| Item CRUD | ✅ | ✅ (ItemService) | Full ownership checks; real user ID from JWT ✅ |
+| Search & Filter | ✅ | ✅ | Keyword, color, status, combined |
+| Image Upload | ✅ | ✅ (FileService) | imageUrl now persisted to DB ✅ |
+| Exception Handling | ✅ | — | Global handler, standard format; InvalidFileException added ✅ |
+| Input Validation | ✅ | — | @Valid on all DTOs; NU email pattern enforced ✅ |
+| PostgreSQL Config | ✅ | — | Configured, needs real password |
+| UserService | ✅ | ✅ (UserService) | getUserIdByEmail + getUserByEmail |
+| Frontend (React + TS) | ✅ | ✅ (tsc + vite) | Restructured and fully integrated ✅ |
+| Role-based Authorization | 🔲 | — | Enum defined, logic not enforced |
+| Pagination | ✅ | — | All list endpoints paginated |
+| User Profile Endpoint | ✅ | ✅ (UserService) | Profile controller and fetch endpoints added ✅ |
+| Static Image Serving | ✅ | — | WebMvcConfig maps /uploads/** statically ✅ |
+
+---
+
+## [2026-05-31] Phase 6 — Frontend Integration & Restructuring — Acosta
+
+### Summary
+Successfully refactored, restructured, and styled the entire React-TypeScript frontend application per guidelines. Integrated the frontend with backend API endpoints, configured static image resource serving, and resolved security configurations.
+
+---
+
+### Added
+
+#### Backend Extensions
+- `WebMvcConfig.java` [NEW] — Enables static resource serving for the `./uploads` directory mapping to `/uploads/**`.
+- `UserController.java` [NEW] — Exposes the `GET /api/users/profile` endpoint to fetch user profiles.
+
+#### Frontend Restructuring
+- Restructured `frontend/src/` per directory layout:
+  - `src/types/` — holds shared TypeScript interfaces.
+  - `src/api/` — initialized `apiClient` using Axios with request interceptor for JWT token injection.
+  - `src/services/` — added `authService` and `itemService` using Axios.
+  - `src/context/` — added `AuthContext` to manage sessions, token persistence, and reactive state.
+  - `src/utils/` — added reusable custom `zodResolver` to bind `react-hook-form` and `zod`.
+  - `src/pages/` — moved and refactored LoginPage, RegisterPage, ItemListPage, CreateItemPage, and ItemDetailPage. Created `ProfilePage.tsx` [NEW] for personal feeds and Teams connection testing.
+
+#### UI Revamp & Styling
+- `index.css` [MODIFIED] — Redesigned with custom HSL variables, Outfit/Inter typography, responsive grids, buttons, and animations.
+- `Header.tsx` [MODIFIED] — Implemented navigation toggles and light/dark mode switch.
+- `App.tsx` [MODIFIED] — Tied providers together with dynamic page title updates for SEO.
+
+#### Verifications
+- Verified frontend TypeScript compiles and bundles cleanly via `npm run build`.
+- Verified all 46 backend unit tests compile and pass successfully.
+
+

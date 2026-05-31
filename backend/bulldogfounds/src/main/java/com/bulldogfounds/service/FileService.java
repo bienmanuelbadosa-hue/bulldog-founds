@@ -1,6 +1,6 @@
 package com.bulldogfounds.service;
 
-import com.bulldogfounds.exception.InvalidCredentialsException;
+import com.bulldogfounds.exception.InvalidFileException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,11 +31,11 @@ public class FileService {
     private static final String[] ALLOWED_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"};
 
     /**
-     * Save uploaded file and return the relative path.
+     * Save uploaded file and return the web-accessible URL path.
      */
     public String saveFile(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
-            throw new InvalidCredentialsException("File is required");
+            throw new InvalidFileException("File is required");
         }
 
         // Validate file
@@ -55,23 +55,29 @@ public class FileService {
         Files.write(filePath, file.getBytes());
 
         log.info("File saved successfully: {}", uniqueFilename);
-        return uploadDir + "/" + uniqueFilename;
+        return "/uploads/" + uniqueFilename;
     }
 
     /**
-     * Delete file by path.
+     * Delete file by image URL/path.
      */
-    public void deleteFile(String filePath) {
-        if (filePath == null || filePath.isEmpty()) {
+    public void deleteFile(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
             return;
         }
 
         try {
-            Path file = Paths.get(filePath);
+            String filename = imageUrl;
+            if (imageUrl.startsWith("/uploads/")) {
+                filename = imageUrl.substring("/uploads/".length());
+            } else if (imageUrl.startsWith(uploadDir + "/")) {
+                filename = imageUrl.substring((uploadDir + "/").length());
+            }
+            Path file = Paths.get(uploadDir).resolve(filename);
             Files.deleteIfExists(file);
-            log.info("File deleted: {}", filePath);
+            log.info("File deleted: {}", file.toAbsolutePath());
         } catch (IOException e) {
-            log.warn("Failed to delete file: {}", filePath, e);
+            log.warn("Failed to delete file for image: {}", imageUrl, e);
         }
     }
 
@@ -81,7 +87,7 @@ public class FileService {
     private void validateFile(MultipartFile file) {
         // Check file size
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new InvalidCredentialsException("File size exceeds 5MB limit");
+            throw new InvalidFileException("File size exceeds 5MB limit");
         }
 
         // Check file type
@@ -95,7 +101,7 @@ public class FileService {
         }
 
         if (!isAllowed) {
-            throw new InvalidCredentialsException("File type not allowed. Allowed: JPEG, PNG, GIF, WebP");
+            throw new InvalidFileException("File type not allowed. Allowed: JPEG, PNG, GIF, WebP");
         }
     }
 }

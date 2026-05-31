@@ -1,6 +1,6 @@
 package com.bulldogfounds.service;
 
-import com.bulldogfounds.exception.InvalidCredentialsException;
+import com.bulldogfounds.exception.InvalidFileException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,20 +43,22 @@ public class FileServiceTest {
 
         // Act
         String filePath = fileService.saveFile(file);
+        Path localPath = Paths.get(TEST_UPLOAD_DIR).resolve(filePath.substring("/uploads/".length()));
 
         // Assert
         assertNotNull(filePath);
-        assertTrue(filePath.contains(TEST_UPLOAD_DIR));
+        assertTrue(filePath.startsWith("/uploads/"));
         assertTrue(filePath.endsWith(".jpg"));
+        assertTrue(Files.exists(localPath));
 
         // Cleanup
-        Files.deleteIfExists(Paths.get(filePath));
+        Files.deleteIfExists(localPath);
     }
 
     @Test
     void testSaveFileNullFile() {
         // Act & Assert
-        assertThrows(InvalidCredentialsException.class, () -> {
+        assertThrows(InvalidFileException.class, () -> {
             fileService.saveFile(null);
         });
     }
@@ -67,7 +69,7 @@ public class FileServiceTest {
         MultipartFile emptyFile = new MockMultipartFile("file", "", "image/jpeg", new byte[0]);
 
         // Act & Assert
-        assertThrows(InvalidCredentialsException.class, () -> {
+        assertThrows(InvalidFileException.class, () -> {
             fileService.saveFile(emptyFile);
         });
     }
@@ -84,7 +86,7 @@ public class FileServiceTest {
         );
 
         // Act & Assert
-        assertThrows(InvalidCredentialsException.class, () -> {
+        assertThrows(InvalidFileException.class, () -> {
             fileService.saveFile(largeFile);
         }, "File size exceeds 5MB limit");
     }
@@ -101,7 +103,7 @@ public class FileServiceTest {
         );
 
         // Act & Assert
-        assertThrows(InvalidCredentialsException.class, () -> {
+        assertThrows(InvalidFileException.class, () -> {
             fileService.saveFile(invalidFile);
         }, "File type not allowed");
     }
@@ -119,13 +121,15 @@ public class FileServiceTest {
 
         // Act
         String filePath = fileService.saveFile(pngFile);
+        Path localPath = Paths.get(TEST_UPLOAD_DIR).resolve(filePath.substring("/uploads/".length()));
 
         // Assert
         assertNotNull(filePath);
         assertTrue(filePath.endsWith(".png"));
+        assertTrue(Files.exists(localPath));
 
         // Cleanup
-        Files.deleteIfExists(Paths.get(filePath));
+        Files.deleteIfExists(localPath);
     }
 
     @Test
@@ -134,15 +138,16 @@ public class FileServiceTest {
         byte[] fileContent = "Test content".getBytes();
         MultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", fileContent);
         String filePath = fileService.saveFile(file);
+        Path localPath = Paths.get(TEST_UPLOAD_DIR).resolve(filePath.substring("/uploads/".length()));
 
         // Verify file exists
-        assertTrue(Files.exists(Paths.get(filePath)));
+        assertTrue(Files.exists(localPath));
 
         // Act
         fileService.deleteFile(filePath);
 
         // Assert
-        assertFalse(Files.exists(Paths.get(filePath)));
+        assertFalse(Files.exists(localPath));
     }
 
     @Test

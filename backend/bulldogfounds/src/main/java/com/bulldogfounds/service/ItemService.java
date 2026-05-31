@@ -65,6 +65,7 @@ public class ItemService {
                 .lastKnownLocation(request.getLastKnownLocation())
                 .claimLocation(request.getClaimLocation())
                 .additionalDetails(request.getAdditionalDetails())
+                .imageUrl(request.getImageUrl())
                 .createdBy(user)
                 .build();
 

@@ -38,4 +38,10 @@ public class CreateItemRequest {
 
     @Size(max = 2000, message = "Additional details must not exceed 2000 characters")
     private String additionalDetails;
+
+    /**
+     * URL of the uploaded image. Set by the controller after file upload.
+     * Optional field — not submitted by API clients directly.
+     */
+    private String imageUrl;
 }
