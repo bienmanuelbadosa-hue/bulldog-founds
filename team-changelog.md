@@ -437,5 +437,5 @@ Initialized the local PostgreSQL database, resolved Spring Security CORS preflig
 * Fixed Axios image file upload header mismatch in `itemService.ts` by setting `'Content-Type': undefined`.
 * Expanded email domain validation on backend (`RegisterRequest.java`) and frontend (`LoginPage.tsx`, `RegisterPage.tsx`) to support `@students.nu-laguna.edu.ph` domains.
 * Documented overall MVP specifications compliance in `project_compliance_audit.md`.
-
+* Expanded `README.md` from 2-line stub to full documentation covering: project overview, team members, tech stack, 4-layer architecture diagram, OOP concepts applied (Encapsulation, Abstraction, Inheritance, Polymorphism), design patterns and GRASP/SOLID principles table, step-by-step setup and run guide (Database → Backend → Frontend), full API reference table for Auth and Item endpoints, test coverage summary, project directory tree, and security notes.
 
