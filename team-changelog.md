@@ -314,7 +314,7 @@ Fixed all 4 critical bugs identified before frontend integration: proper JWT use
 
 ---
 
-## [2026-05-31] Phase 6 — Frontend Integration & Restructuring — Acosta
+## [2026-05-31] Phase 6 — Frontend Integration & Restructuring — Costiniano 
 
 ### Summary
 Successfully refactored, restructured, and styled the entire React-TypeScript frontend application per guidelines. Integrated the frontend with backend API endpoints, configured static image resource serving, and resolved security configurations.
@@ -365,7 +365,7 @@ Successfully refactored, restructured, and styled the entire React-TypeScript fr
 
 ---
 
-## [2026-05-31] Phase 7 — Post-Audit Architecture Refactoring & Type Safety — Acosta
+## [2026-05-31] Phase 7 — Post-Audit Architecture Refactoring & Type Safety — Costiniano
 
 ### Summary
 Addressed architectural gaps identified during post-audit: added DTO validation, introduced full frontend types, refactored routing and layout hierarchy, and completed missing structural folder structures.
@@ -399,7 +399,7 @@ Addressed architectural gaps identified during post-audit: added DTO validation,
 
 ---
 
-## [2026-05-31] Phase 8 — PostgreSQL CORS & Image Upload Remediation — Acosta
+## [2026-05-31] Phase 8 — PostgreSQL CORS & Image Upload Remediation — Badosa
 
 ### Summary
 Initialized the local PostgreSQL database, resolved Spring Security CORS preflight check rejections, and corrected boundary detection for multipart file uploads during item posting.
@@ -431,7 +431,7 @@ Initialized the local PostgreSQL database, resolved Spring Security CORS preflig
 - Verified frontend TypeScript compiles clean (`npx tsc --noEmit`) with 0 errors.
 - Verified frontend production packaging bundles clean (`npm run build`) with 0 errors.
 
-## [2026-05-31] Phase 9 — Software Design, OOP & Production Hardening — Badosa & Costiniano
+## [2026-05-31] Phase 9 — Software Design, OOP & Production Hardening — Badosa
 
 ### Summary
 Addressed architectural gaps highlighted in the grading rubric, implemented high-grade software patterns (SOLID + DRY), hardened security configurations to avoid hardcoded credentials, and refactored the unit test suite to support service interfaces.
