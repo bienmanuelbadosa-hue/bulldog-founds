@@ -66,7 +66,7 @@ Set up the entire backend foundation: project structure, core entities, enums, r
   - Server on port 8080
 
 #### Tests
-- `AuthServiceTest.java` — 6 unit tests: register success, duplicate email, login success, invalid password, user not found
+- `AuthServiceTest.java` — 5 unit tests: register success, duplicate email, login success, invalid password, user not found
 - `JwtTokenProviderTest.java` — 7 unit tests: token generation, subject extraction, expiration, validation, invalid token rejection
 
 ---
@@ -344,5 +344,57 @@ Successfully refactored, restructured, and styled the entire React-TypeScript fr
 #### Verifications
 - Verified frontend TypeScript compiles and bundles cleanly via `npm run build`.
 - Verified all 46 backend unit tests compile and pass successfully.
+
+---
+
+### Engineering Principles Applied
+- Clean architecture and directory layout on the frontend
+- React Context for managing global authentication state
+- Separation of concerns between API client (Axios), services, and page components
+- Modern typography, CSS variables, and styling with clean UX animations
+- Form management and input validation via React Hook Form and Zod
+- Page titles and SEO optimization via dynamic meta changes
+
+---
+
+### Known Issues / TODOs
+- ⚠️ Backend `RegisterRequest` is missing DTO-level `@NotNull` validation on the `role` field.
+- ⚠️ Frontend `authService.ts` uses `any` parameter types instead of typed DTOs.
+- ⚠️ Frontend is missing structural folders (`hooks/`, `layouts/`, `routes/`) and shared components (`Footer`, `LoadingSpinner`).
+- ⚠️ Navigation and layout wrapping is tangled inside `App.tsx` causing context issues.
+
+---
+
+## [2026-05-31] Phase 7 — Post-Audit Architecture Refactoring & Type Safety — Acosta
+
+### Summary
+Addressed architectural gaps identified during post-audit: added DTO validation, introduced full frontend types, refactored routing and layout hierarchy, and completed missing structural folder structures.
+
+---
+
+### Added
+
+#### Backend Validation
+- `RegisterRequest.java` [MODIFIED] — Added `@NotNull(message = "Role is required")` to the `role` field to enforce correct user role submission at the DTO layer.
+
+#### Frontend Type Safety
+- `types/index.ts` [MODIFIED] — Added `RegisterRequest` and `LoginRequest` interfaces.
+- `authService.ts` [MODIFIED] — Replaced untyped `any` parameter signatures with strict typed interfaces.
+
+#### Frontend Architecture & Layout
+- `components/Footer.tsx` [NEW] — Shared footer copyright bar.
+- `components/LoadingSpinner.tsx` [NEW] — Shared full-page loading spinner.
+- `hooks/useAuth.ts` [NEW] — Clean hooks wrapper folder/re-export.
+- `layouts/MainLayout.tsx` [NEW] — Combines `Header`, main slot, and `Footer` with internal navigation context consumption.
+- `routes/AppRoutes.tsx` [MODIFIED] — Created to handle page switching, route protection, document titling, and NavigationContext. Wraps children inside `MainLayout`.
+- `App.tsx` [MODIFIED] — Refactored to act as a thin bootstrap/provider shell that renders `AppRoutes` directly.
+
+---
+
+### Engineering Principles Applied
+- Strict DTO-level request validation.
+- Strong TypeScript typing (avoiding `any` in service signatures).
+- Separation of concerns (separate layout, routing, and loading wrappers).
+- React Context hierarchy matching the rendering hierarchy (wrapping pages in layout inside context provider).
 
 

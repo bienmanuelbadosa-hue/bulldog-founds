@@ -32,6 +32,20 @@ export interface ItemPost {
   createdByTeamsLink?: string;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: 'STUDENT' | 'FACULTY' | 'STAFF';
+  teamsLink?: string;
+}
+
 export interface CreateItemRequest {
   title: string;
   color: string;
