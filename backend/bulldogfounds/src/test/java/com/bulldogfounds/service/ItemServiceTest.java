@@ -34,6 +34,8 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for ItemService.
  */
+import com.bulldogfounds.service.impl.ItemServiceImpl;
+
 @ExtendWith(MockitoExtension.class)
 class ItemServiceTest {
 
@@ -44,7 +46,7 @@ class ItemServiceTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private ItemService itemService;
+    private ItemServiceImpl itemService;
 
     private User testUser;
     private ItemPost testItem;

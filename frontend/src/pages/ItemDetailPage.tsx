@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { itemService } from '../services/itemService';
 import type { ItemPost } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { StatusBadge } from '../components/StatusBadge';
+import { getImageUrl } from '../utils/image';
 
 interface ItemDetailProps {
   item: ItemPost;
@@ -47,37 +49,7 @@ export const ItemDetailPage: React.FC<ItemDetailProps> = ({ item, onBack, onDele
     }
   };
 
-  const getImageUrl = (url?: string) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:8080${url}`;
-  };
 
-  const statusBadgeStyle = (currentStatus: string): React.CSSProperties => {
-    let bg = 'rgba(148, 163, 184, 0.15)';
-    let color = 'var(--text-secondary)';
-    if (currentStatus === 'RESOLVED') {
-      bg = 'rgba(16, 185, 129, 0.15)';
-      color = 'var(--success)';
-    } else if (currentStatus === 'PENDING_CLAIM') {
-      bg = 'rgba(245, 158, 11, 0.15)';
-      color = 'var(--warning)';
-    } else if (currentStatus === 'UNRESOLVED') {
-      bg = 'rgba(59, 130, 246, 0.15)';
-      color = 'var(--info)';
-    }
-    return {
-      display: 'inline-block',
-      padding: '6px 14px',
-      borderRadius: '20px',
-      fontSize: '0.85rem',
-      fontWeight: '700',
-      backgroundColor: bg,
-      color: color,
-      textTransform: 'uppercase',
-      letterSpacing: '0.02em',
-    };
-  };
 
   // Generate Teams chat URL fallback using Microsoft Teams deep link API if custom teamsLink is not specified
   const teamsChatUrl = item.createdByTeamsLink || `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(item.createdByEmail)}`;
@@ -96,9 +68,9 @@ export const ItemDetailPage: React.FC<ItemDetailProps> = ({ item, onBack, onDele
 
   return (
     <div style={pageContainerStyle} className="animate-fade-in-up">
-      <button 
-        onClick={onBack} 
-        className="btn-outline" 
+      <button
+        onClick={onBack}
+        className="btn-outline"
         style={{ marginBottom: '20px', padding: '10px 18px', borderRadius: '10px' }}
       >
         ← Back to Bulletin
@@ -172,7 +144,7 @@ export const ItemDetailPage: React.FC<ItemDetailProps> = ({ item, onBack, onDele
               </div>
             )}
             <div style={{ position: 'absolute', top: '20px', left: '20px' }}>
-              <span style={statusBadgeStyle(status)}>{status}</span>
+              <StatusBadge status={status} style={{ padding: '6px 14px', fontSize: '0.85rem' }} />
             </div>
           </div>
 
@@ -183,7 +155,7 @@ export const ItemDetailPage: React.FC<ItemDetailProps> = ({ item, onBack, onDele
                 🎨 COLOR: {item.color} • 📅 POSTED: {new Date(item.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
               </div>
               <h1 style={{ fontSize: '2.2rem', marginBottom: '20px' }}>{item.title}</h1>
-              
+
               <div style={{ marginBottom: '30px' }}>
                 <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</h3>
                 <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7', fontSize: '1rem' }}>{item.description}</p>

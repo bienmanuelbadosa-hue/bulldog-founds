@@ -1,5 +1,6 @@
 package com.bulldogfounds.exception;
 
+import com.bulldogfounds.dto.ErrorResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -126,19 +127,4 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
-}
-
-/**
- * Standard error response format for all API errors.
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-class ErrorResponse {
-    private LocalDateTime timestamp;
-    private int status;
-    private String message;
-    private String error;
-    private Map<String, String> validationErrors;
 }

@@ -134,6 +134,10 @@ spring.datasource.password=your_pg_password
 jwt.secret=your-long-random-secret-key-at-least-32-chars
 ```
 
+Alternatively, you can pass these credentials as environment variables:
+- `DB_PASSWORD`: The password for your PostgreSQL database (defaults to `postgres`).
+- `JWT_SECRET`: A secure 256-bit key for JWT token signatures.
+
 Run the backend:
 
 ```bash

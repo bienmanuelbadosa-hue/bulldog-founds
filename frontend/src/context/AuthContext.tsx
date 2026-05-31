@@ -26,16 +26,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const savedUser = localStorage.getItem('user');
 
       if (savedToken && savedUser) {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-        
         try {
+          const parsedUser = JSON.parse(savedUser);
+          setToken(savedToken);
+          setUser(parsedUser);
+          
           // Verify/refresh user profile on load
           const freshUser = await authService.getProfile();
           setUser(freshUser);
           localStorage.setItem('user', JSON.stringify(freshUser));
         } catch (error) {
-          console.error("Token verification failed, logging out.", error);
+          console.error("Token verification or initialization failed, logging out.", error);
           logout();
         }
       }

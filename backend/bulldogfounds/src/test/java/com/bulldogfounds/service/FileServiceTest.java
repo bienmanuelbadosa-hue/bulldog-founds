@@ -17,11 +17,13 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.bulldogfounds.service.impl.FileServiceImpl;
+
 @ExtendWith(MockitoExtension.class)
 public class FileServiceTest {
 
     @InjectMocks
-    private FileService fileService;
+    private FileServiceImpl fileService;
 
     private static final String TEST_UPLOAD_DIR = "./test-uploads";
 

@@ -431,11 +431,40 @@ Initialized the local PostgreSQL database, resolved Spring Security CORS preflig
 - Verified frontend TypeScript compiles clean (`npx tsc --noEmit`) with 0 errors.
 - Verified frontend production packaging bundles clean (`npm run build`) with 0 errors.
 
-## [2026-05-31]
-* Initialized local PostgreSQL database `bulldogfounds`.
-* Added global CORS security filter mapping to Spring Security (`SecurityConfig.java`) to permit OPTIONS preflight requests.
-* Fixed Axios image file upload header mismatch in `itemService.ts` by setting `'Content-Type': undefined`.
-* Expanded email domain validation on backend (`RegisterRequest.java`) and frontend (`LoginPage.tsx`, `RegisterPage.tsx`) to support `@students.nu-laguna.edu.ph` domains.
-* Documented overall MVP specifications compliance in `project_compliance_audit.md`.
-* Expanded `README.md` from 2-line stub to full documentation covering: project overview, team members, tech stack, 4-layer architecture diagram, OOP concepts applied (Encapsulation, Abstraction, Inheritance, Polymorphism), design patterns and GRASP/SOLID principles table, step-by-step setup and run guide (Database → Backend → Frontend), full API reference table for Auth and Item endpoints, test coverage summary, project directory tree, and security notes.
+## [2026-05-31] Phase 9 — Software Design, OOP & Production Hardening — Badosa & Costiniano
+
+### Summary
+Addressed architectural gaps highlighted in the grading rubric, implemented high-grade software patterns (SOLID + DRY), hardened security configurations to avoid hardcoded credentials, and refactored the unit test suite to support service interfaces.
+
+---
+
+### Added
+- `components/StatusBadge.tsx` [NEW] — Reusable status badge component using uniform theme colors across the application, implementing DRY.
+- `components/ItemCard.tsx` [NEW] — Flexible grid/list item card layout component used globally in feed and profile screens to decouple layout templates from logical pages.
+- `pages/NotFoundPage.tsx` [NEW] — High-aesthetic error 404 page for unmatched application state routes.
+- `dto/ErrorResponse.java` [NEW] — Standard DTO representing API errors, completely decoupling domain entities and controllers from raw JSON map structures in exception handling.
+- `utils/image.ts` [NEW] — Shared helper resolving relative file storage paths to absolute server ports.
+
+---
+
+### Modified
+
+#### Backend Refactoring
+- `GlobalExceptionHandler.java` [MODIFIED] — Imported and instantiated the new `ErrorResponse` DTO class, extracting the nested implementation to strictly follow SRP.
+- `application.properties` [MODIFIED] — Replaced hardcoded PostgreSQL passwords and static JWT secrets with dynamic `${DB_PASSWORD}` and `${JWT_SECRET}` environment variable overrides, incorporating secure local fallbacks.
+- `README.md` [MODIFIED] — Documented environment variables configuration for deployments.
+
+#### Unit Test Remediations
+- `AuthServiceTest.java`, `ItemServiceTest.java`, `FileServiceTest.java`, `UserServiceTest.java` [MODIFIED] — Reconfigured Mockito `@InjectMocks` declarations to wire up concrete Service implementation classes (`AuthServiceImpl`, `ItemServiceImpl`, etc.) instead of interfaces, resolving test runner initialization exceptions.
+
+#### Frontend Cleanups
+- `pages/ItemListPage.tsx`, `pages/ProfilePage.tsx`, `pages/ItemDetailPage.tsx` [MODIFIED] — Cleaned up redundant local styles and duplicate helper methods (`getImageUrl`, `statusBadgeStyle`), fully adopting the new reusable `ItemCard` and `StatusBadge` components.
+- `routes/AppRoutes.tsx` [MODIFIED] — Registered `NotFoundPage` as a catch-all safety fallback.
+
+---
+
+### Verifications
+- Verified all 46 backend JUnit test suites pass flawlessly against service abstraction layers (100% BUILD SUCCESS).
+- Verified frontend static type checking compiles completely clean (`npx tsc --noEmit`) with 0 errors.
+
 

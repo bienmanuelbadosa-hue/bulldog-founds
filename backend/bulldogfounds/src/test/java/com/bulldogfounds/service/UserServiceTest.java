@@ -23,6 +23,8 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.
  */
+import com.bulldogfounds.service.impl.UserServiceImpl;
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService Unit Tests")
 class UserServiceTest {
@@ -31,7 +33,7 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     private User testUser;
 

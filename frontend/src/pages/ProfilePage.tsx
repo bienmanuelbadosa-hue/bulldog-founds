@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { itemService } from '../services/itemService';
 import type { ItemPost } from '../types';
+import { ItemCard } from '../components/ItemCard';
 
 interface ProfilePageProps {
   onSelectItem: (item: ItemPost) => void;
@@ -32,37 +33,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onSelectItem, onBack }
     } finally {
       setLoading(false);
     }
-  };
-
-  const getImageUrl = (url?: string) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:8080${url}`;
-  };
-
-  const statusBadgeStyle = (status: string): React.CSSProperties => {
-    let bg = 'rgba(148, 163, 184, 0.15)';
-    let color = 'var(--text-secondary)';
-    if (status === 'RESOLVED') {
-      bg = 'rgba(16, 185, 129, 0.15)';
-      color = 'var(--success)';
-    } else if (status === 'PENDING_CLAIM') {
-      bg = 'rgba(245, 158, 11, 0.15)';
-      color = 'var(--warning)';
-    } else if (status === 'UNRESOLVED') {
-      bg = 'rgba(59, 130, 246, 0.15)';
-      color = 'var(--info)';
-    }
-    return {
-      display: 'inline-block',
-      padding: '4px 10px',
-      borderRadius: '20px',
-      fontSize: '0.75rem',
-      fontWeight: '700',
-      backgroundColor: bg,
-      color: color,
-      textTransform: 'uppercase',
-    };
   };
 
   if (!user) {
@@ -189,51 +159,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onSelectItem, onBack }
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {items.map((item) => (
-                <div
+                <ItemCard
                   key={item.id}
+                  item={item}
                   onClick={() => onSelectItem(item)}
-                  style={{
-                    display: 'flex',
-                    gap: '16px',
-                    border: '1px solid var(--border)',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    backgroundColor: 'var(--bg-app)',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--primary)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.transform = 'none';
-                  }}
-                >
-                  <div style={{ width: '100px', height: '100px', backgroundColor: 'var(--border)', flexShrink: 0 }}>
-                    {item.imageUrl ? (
-                      <img
-                        src={getImageUrl(item.imageUrl)}
-                        alt={item.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
-                        📦
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                      <h3 style={{ fontSize: '1.15rem' }}>{item.title}</h3>
-                      <span style={statusBadgeStyle(item.status)}>{item.status}</span>
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Reported on {new Date(item.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
+                  variant="list"
+                />
               ))}
 
               {/* Pagination */}

@@ -6,6 +6,7 @@ import { ItemListPage } from '../pages/ItemListPage';
 import { CreateItemPage } from '../pages/CreateItemPage';
 import { ItemDetailPage } from '../pages/ItemDetailPage';
 import { ProfilePage } from '../pages/ProfilePage';
+import { NotFoundPage } from '../pages/NotFoundPage';
 import { MainLayout } from '../layouts/MainLayout';
 import type { ItemPost } from '../types';
 
@@ -130,6 +131,10 @@ export const AppRoutes: React.FC = () => {
             }}
             onBack={() => setCurrentPage('list')}
           />
+        )}
+
+        {!['login', 'register', 'list', 'create', 'detail', 'profile'].includes(activePage) && (
+          <NotFoundPage onGoHome={() => setCurrentPage('list')} />
         )}
       </MainLayout>
     </NavigationContext.Provider>

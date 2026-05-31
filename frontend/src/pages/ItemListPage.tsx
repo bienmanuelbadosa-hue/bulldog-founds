@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { itemService } from '../services/itemService';
 import type { ItemPost, PaginatedResponse } from '../types';
+import { ItemCard } from '../components/ItemCard';
 
 interface ItemListProps {
   onSelectItem: (item: ItemPost) => void;
@@ -57,37 +58,7 @@ export const ItemListPage: React.FC<ItemListProps> = ({ onSelectItem, onCreateNe
     fetchItems('');
   };
 
-  const getImageUrl = (url?: string) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:8080${url}`;
-  };
 
-  const statusBadgeStyle = (status: string): React.CSSProperties => {
-    let bg = 'rgba(148, 163, 184, 0.15)';
-    let color = 'var(--text-secondary)';
-    if (status === 'RESOLVED') {
-      bg = 'rgba(16, 185, 129, 0.15)';
-      color = 'var(--success)';
-    } else if (status === 'PENDING_CLAIM') {
-      bg = 'rgba(245, 158, 11, 0.15)';
-      color = 'var(--warning)';
-    } else if (status === 'UNRESOLVED') {
-      bg = 'rgba(59, 130, 246, 0.15)';
-      color = 'var(--info)';
-    }
-    return {
-      display: 'inline-block',
-      padding: '4px 10px',
-      borderRadius: '20px',
-      fontSize: '0.75rem',
-      fontWeight: '700',
-      backgroundColor: bg,
-      color: color,
-      textTransform: 'uppercase',
-      letterSpacing: '0.02em',
-    };
-  };
 
   const containerStyle: React.CSSProperties = {
     maxWidth: '1200px',
@@ -120,14 +91,7 @@ export const ItemListPage: React.FC<ItemListProps> = ({ onSelectItem, onCreateNe
     marginBottom: '40px',
   };
 
-  const cardStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    cursor: 'pointer',
-    padding: '0',
-    overflow: 'hidden',
-  };
+
 
   return (
     <div style={containerStyle} className="animate-fade-in">
@@ -229,46 +193,11 @@ export const ItemListPage: React.FC<ItemListProps> = ({ onSelectItem, onCreateNe
         <>
           <div style={gridStyle}>
             {items.map((item) => (
-              <div
+              <ItemCard
                 key={item.id}
-                className="card card-hover"
-                style={cardStyle}
+                item={item}
                 onClick={() => onSelectItem(item)}
-              >
-                {/* Image Section */}
-                <div style={{ height: '180px', backgroundColor: 'var(--border)', overflow: 'hidden', position: 'relative' }}>
-                  {item.imageUrl ? (
-                    <img
-                      src={getImageUrl(item.imageUrl)}
-                      alt={item.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', color: 'var(--text-muted)' }}>
-                      📦
-                    </div>
-                  )}
-                  <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                    <span style={statusBadgeStyle(item.status)}>{item.status}</span>
-                  </div>
-                </div>
-
-                {/* Content Section */}
-                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.title}
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', marginBottom: '12px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '40px', lineHeight: '1.5' }}>
-                      {item.description}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '12px' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>📍 {item.lastKnownLocation}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>🎨 {item.color}</span>
-                  </div>
-                </div>
-              </div>
+              />
             ))}
           </div>
 
