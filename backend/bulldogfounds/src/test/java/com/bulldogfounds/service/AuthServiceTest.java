@@ -25,6 +25,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import com.bulldogfounds.service.impl.AuthServiceImpl;
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Unit Tests")
 class AuthServiceTest {
@@ -39,7 +41,7 @@ class AuthServiceTest {
     private JwtTokenProvider tokenProvider;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;

@@ -7,6 +7,7 @@ import com.bulldogfounds.dto.UpdateItemStatusRequest;
 import com.bulldogfounds.enums.ItemStatus;
 import com.bulldogfounds.service.FileService;
 import com.bulldogfounds.service.ItemService;
+import com.bulldogfounds.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ public class ItemController {
 
     private final ItemService itemService;
     private final FileService fileService;
+    private final UserService userService;
 
     /**
      * Create a new item post with optional file upload.
@@ -69,8 +71,14 @@ public class ItemController {
         log.info("POST /api/items (multipart) - Creating item for user: {}", authentication.getName());
         
         Long userId = extractUserIdFromAuth(authentication);
-        
-        // Build request object
+
+        // Handle file upload first so the URL can be persisted with the item
+        String imageUrl = null;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageUrl = fileService.saveFile(imageFile);
+        }
+
+        // Build request object — imageUrl included so it is persisted to DB
         CreateItemRequest request = CreateItemRequest.builder()
                 .title(title)
                 .color(color)
@@ -78,19 +86,11 @@ public class ItemController {
                 .lastKnownLocation(lastKnownLocation)
                 .claimLocation(claimLocation)
                 .additionalDetails(additionalDetails)
+                .imageUrl(imageUrl)
                 .build();
-        
-        // Handle file upload
-        String imageUrl = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            imageUrl = fileService.saveFile(imageFile);
-        }
-        
+
         ItemResponse response = itemService.createItem(userId, request);
-        if (imageUrl != null) {
-            response.setImageUrl(imageUrl);
-        }
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -339,17 +339,15 @@ public class ItemController {
     }
 
     /**
-     * Extract user ID from authentication.
-     * In JWT auth, the principal is the user's email.
-     * 
-     * @param authentication the authentication object
-     * @return user ID (placeholder - should be fetched from database in real implementation)
+     * Extract the authenticated user's database ID from the JWT principal.
+     * The JWT principal is the user's email, which is used to look up the real user ID.
+     *
+     * @param authentication the authentication object containing the JWT email as principal
+     * @return the user's database ID
      */
     private Long extractUserIdFromAuth(Authentication authentication) {
         String email = (String) authentication.getPrincipal();
-        log.debug("Extracting user ID from email: {}", email);
-        // In a real implementation, fetch user ID from database using email
-        // For now, return a placeholder
-        return 1L; // TODO: Implement proper user ID extraction
+        log.debug("Resolving user ID from JWT email: {}", email);
+        return userService.getUserIdByEmail(email);
     }
 }

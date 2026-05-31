@@ -1,5 +1,6 @@
 package com.bulldogfounds.exception;
 
+import com.bulldogfounds.dto.ErrorResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,6 +49,21 @@ public class GlobalExceptionHandler {
                 .error("Invalid Credentials")
                 .build();
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * Handle InvalidFileException.
+     * Returned when a file upload fails validation (wrong type, too large, etc.)
+     */
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFile(InvalidFileException ex) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .error("Invalid File")
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     /**
@@ -111,19 +127,4 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
-}
-
-/**
- * Standard error response format for all API errors.
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-class ErrorResponse {
-    private LocalDateTime timestamp;
-    private int status;
-    private String message;
-    private String error;
-    private Map<String, String> validationErrors;
 }

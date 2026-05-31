@@ -1,101 +1,36 @@
 package com.bulldogfounds.service;
 
-import com.bulldogfounds.exception.InvalidCredentialsException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 /**
- * FileService handles file uploads and storage.
- * 
- * Responsibilities:
- * - Validate uploaded files
- * - Store files locally
- * - Generate unique filenames
+ * Service interface for file storage operations.
+ *
+ * <p>Defines the contract for saving and deleting uploaded files.
+ * Follows the Single Responsibility Principle (SRP) — this service
+ * is solely responsible for file I/O and is completely decoupled
+ * from item and user business logic.
+ *
+ * <p>Follows the Interface Segregation Principle (ISP) — exposes only
+ * file-specific operations, not mixed with item or user concerns.
  */
-@Slf4j
-@Service
-public class FileService {
-
-    @Value("${file.upload-dir:./uploads}")
-    private String uploadDir;
-
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    private static final String[] ALLOWED_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"};
+public interface FileService {
 
     /**
-     * Save uploaded file and return the relative path.
+     * Save an uploaded file and return its publicly accessible URL path.
+     *
+     * @param file the uploaded multipart file
+     * @return relative URL path to the saved file (e.g. "/uploads/filename.jpg")
+     * @throws IOException if the file cannot be written to disk
      */
-    public String saveFile(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new InvalidCredentialsException("File is required");
-        }
-
-        // Validate file
-        validateFile(file);
-
-        // Create upload directory if it doesn't exist
-        Path uploadPath = Paths.get(uploadDir);
-        Files.createDirectories(uploadPath);
-
-        // Generate unique filename
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
-        String uniqueFilename = UUID.randomUUID() + fileExtension;
-
-        // Save file
-        Path filePath = uploadPath.resolve(uniqueFilename);
-        Files.write(filePath, file.getBytes());
-
-        log.info("File saved successfully: {}", uniqueFilename);
-        return uploadDir + "/" + uniqueFilename;
-    }
+    String saveFile(MultipartFile file) throws IOException;
 
     /**
-     * Delete file by path.
+     * Delete a previously uploaded file by its URL path.
+     * Silently ignores missing files.
+     *
+     * @param imageUrl the relative URL of the file to delete
      */
-    public void deleteFile(String filePath) {
-        if (filePath == null || filePath.isEmpty()) {
-            return;
-        }
-
-        try {
-            Path file = Paths.get(filePath);
-            Files.deleteIfExists(file);
-            log.info("File deleted: {}", filePath);
-        } catch (IOException e) {
-            log.warn("Failed to delete file: {}", filePath, e);
-        }
-    }
-
-    /**
-     * Validate file size and type.
-     */
-    private void validateFile(MultipartFile file) {
-        // Check file size
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new InvalidCredentialsException("File size exceeds 5MB limit");
-        }
-
-        // Check file type
-        String contentType = file.getContentType();
-        boolean isAllowed = false;
-        for (String allowedType : ALLOWED_TYPES) {
-            if (allowedType.equals(contentType)) {
-                isAllowed = true;
-                break;
-            }
-        }
-
-        if (!isAllowed) {
-            throw new InvalidCredentialsException("File type not allowed. Allowed: JPEG, PNG, GIF, WebP");
-        }
-    }
+    void deleteFile(String imageUrl);
 }

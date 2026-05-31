@@ -34,6 +34,8 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for ItemService.
  */
+import com.bulldogfounds.service.impl.ItemServiceImpl;
+
 @ExtendWith(MockitoExtension.class)
 class ItemServiceTest {
 
@@ -44,7 +46,7 @@ class ItemServiceTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private ItemService itemService;
+    private ItemServiceImpl itemService;
 
     private User testUser;
     private ItemPost testItem;
@@ -114,6 +116,44 @@ class ItemServiceTest {
         assertThatThrownBy(() -> itemService.createItem(999L, createRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User not found");
+    }
+
+    @Test
+    void testCreateItemWithImageUrl() {
+        // Arrange — request includes an imageUrl (set by controller after file upload)
+        ItemPost itemWithImage = ItemPost.builder()
+                .id(2L)
+                .title("Lost Wallet")
+                .color("Brown")
+                .description("Lost wallet near cafeteria with cards inside")
+                .lastKnownLocation("Cafeteria")
+                .claimLocation("Lost and Found Office")
+                .imageUrl("./uploads/some-uuid.jpg")
+                .status(ItemStatus.UNRESOLVED)
+                .createdBy(testUser)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        CreateItemRequest requestWithImage = CreateItemRequest.builder()
+                .title("Lost Wallet")
+                .color("Brown")
+                .description("Lost wallet near cafeteria with cards inside")
+                .lastKnownLocation("Cafeteria")
+                .claimLocation("Lost and Found Office")
+                .imageUrl("./uploads/some-uuid.jpg")
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(itemRepository.save(any(ItemPost.class))).thenReturn(itemWithImage);
+
+        // Act
+        ItemResponse response = itemService.createItem(1L, requestWithImage);
+
+        // Assert — imageUrl is present in the response (was persisted via entity)
+        assertThat(response).isNotNull();
+        assertThat(response.getImageUrl()).isEqualTo("./uploads/some-uuid.jpg");
+        verify(userRepository).findById(1L);
+        verify(itemRepository).save(any(ItemPost.class));
     }
 
     @Test
