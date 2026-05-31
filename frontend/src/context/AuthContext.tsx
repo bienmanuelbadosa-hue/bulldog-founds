@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const parsedUser = JSON.parse(savedUser);
           setToken(savedToken);
           setUser(parsedUser);
-          
+
           // Verify/refresh user profile on load
           const freshUser = await authService.getProfile();
           setUser(freshUser);
@@ -47,29 +47,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
-    try {
-      const response = await authService.login({ email, password });
-      setToken(response.token);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-    } finally {
-      setLoading(false);
-    }
+    const response = await authService.login({ email, password });
+    setToken(response.token);
+    setUser(response.user);
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
   };
 
   const register = async (data: RegisterRequest) => {
-    setLoading(true);
-    try {
-      const response = await authService.register(data);
-      setToken(response.token);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-    } finally {
-      setLoading(false);
-    }
+    const response = await authService.register(data);
+    setToken(response.token);
+    setUser(response.user);
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
   };
 
   const logout = () => {

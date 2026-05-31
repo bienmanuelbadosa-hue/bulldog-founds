@@ -67,7 +67,15 @@ export const RegisterPage: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwi
     setServerError('');
     setIsSubmitting(true);
     try {
-      await registerUser(data);
+      const payload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        ...(data.teamsLink ? { teamsLink: data.teamsLink } : {}),
+      };
+      await registerUser(payload);
       onRegisterSuccess();
     } catch (err: any) {
       setServerError(

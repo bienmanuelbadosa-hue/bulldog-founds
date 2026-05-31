@@ -467,4 +467,25 @@ Addressed architectural gaps highlighted in the grading rubric, implemented high
 - Verified all 46 backend JUnit test suites pass flawlessly against service abstraction layers (100% BUILD SUCCESS).
 - Verified frontend static type checking compiles completely clean (`npx tsc --noEmit`) with 0 errors.
 
+---
+
+## [2026-06-01] Phase 10 — Authentication Error Swallowing & UX UI Remediation — Badosa & Costiniano
+
+### Summary
+Resolved a critical user experience issue where registering with duplicate emails or logging in with invalid credentials caused a silent page reset to the login screen without showing any warnings or error text.
+
+---
+
+### Fixed
+
+#### Bug 1 — Silent Authentication Error Swallowing & App Reset
+- **Root Cause:** In `AuthContext.tsx`, the `login` and `register` methods toggled the global `loading` state (`setLoading(true)`) and reset it in a `finally` block (`setLoading(false)`). When `loading` became `true`, the root `AppContent` in `App.tsx` unmounted `<AppRoutes />` entirely and mounted `<LoadingSpinner />`. This completely destroyed the local state of `RegisterPage.tsx` and `LoginPage.tsx` (losing inputs, `serverError` states, and pending `catch` executions). When the request finished, `loading` was set to `false`, causing `<AppRoutes />` to remount from scratch. This reset the current page back to the default `'login'` screen (as the user was not authenticated), giving the illusion of a silent reset without error messages.
+- **Fix:** Removed the global `loading` state toggles (`setLoading(true/false)`) and `try-finally` wrappers from the `login` and `register` methods in `AuthContext.tsx`. The global `loading` state is now exclusively reserved for the initial session check on application boot. Both `LoginPage.tsx` and `RegisterPage.tsx` continue to use their own local `isSubmitting` states to manage form submission indicators. This keeps the pages mounted, preserves form data, and allows the page-level `catch` blocks to display `serverError` messages inline.
+
+---
+
+### Verifications
+- Verified frontend static type checking compiles completely clean (`npx tsc --noEmit`) with 0 errors.
+
+
 
