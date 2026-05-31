@@ -26,7 +26,7 @@ export interface ItemPost {
   imageUrl?: string;
   status: 'UNRESOLVED' | 'PENDING_CLAIM' | 'RESOLVED';
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   createdByName: string;
   createdByEmail: string;
   createdByTeamsLink?: string;
@@ -59,6 +59,6 @@ export interface PaginatedResponse<T> {
   content: T[];
   totalPages: number;
   totalElements: number;
-  currentPage: number;
-  pageSize: number;
+  number: number;
+  size: number;
 }

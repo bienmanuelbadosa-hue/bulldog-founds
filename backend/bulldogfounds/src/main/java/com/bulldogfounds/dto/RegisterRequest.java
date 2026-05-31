@@ -31,8 +31,8 @@ public class RegisterRequest {
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     @Pattern(
-            regexp = "^[a-zA-Z0-9._%+\\-]+@nu-laguna\\.edu\\.ph$",
-            message = "Email must be a valid NU Laguna email address (@nu-laguna.edu.ph)"
+            regexp = "^[a-zA-Z0-9._%+\\-]+@(students\\.)?nu-laguna\\.edu\\.ph$",
+            message = "Email must be a valid NU Laguna email address (@nu-laguna.edu.ph or @students.nu-laguna.edu.ph)"
     )
     private String email;
 

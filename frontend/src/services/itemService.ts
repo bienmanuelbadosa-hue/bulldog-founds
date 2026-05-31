@@ -18,7 +18,7 @@ export const itemService = {
 
     const response = await apiClient.post<ItemPost>('/items', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': undefined,
       },
     });
     return response.data;
