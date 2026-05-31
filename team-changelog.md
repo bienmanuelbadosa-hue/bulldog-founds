@@ -409,6 +409,7 @@ Initialized the local PostgreSQL database, resolved Spring Security CORS preflig
 ### Added
 - Initialized local PostgreSQL database `bulldogfounds` to resolve backend database connection issues.
 - Added a bulletproof global `.cors()` configuration to Spring Security's `filterChain` and registered a `CorsConfigurationSource` bean in `SecurityConfig.java` that uses `setAllowedOriginPatterns` and `setAllowCredentials(true)` to explicitly permit all cross-origin requests, HTTP methods, and custom headers (including `Authorization`, `Content-Type`, and Axios-specific headers) during browser preflight checks.
+- Permitted student email addresses ending with `@students.nu-laguna.edu.ph` by updating the regex validation pattern on both the backend DTO validation (`RegisterRequest.java`) and the frontend form schemas (`RegisterPage.tsx`, `LoginPage.tsx`).
 
 ---
 
@@ -418,6 +419,10 @@ Initialized the local PostgreSQL database, resolved Spring Security CORS preflig
 - `types/index.ts` [MODIFIED] — Made `ItemPost.updatedAt` optional to gracefully support null/unmodified timestamps. Refactored `PaginatedResponse<T>` to use `number` and `size` fields to align exactly with Spring's Page JSON response.
 - `context/AuthContext.tsx` [MODIFIED] — Imported `RegisterRequest` and replaced the untyped `any` parameter in the `register` function type signature and implementation with strict types.
 - `services/itemService.ts` [MODIFIED] — Changed `'Content-Type': 'multipart/form-data'` to `undefined` for `createItem` request headers, removing the static string and letting Axios/browser automatically generate the correct boundary string for the server.
+- `pages/LoginPage.tsx` & `pages/RegisterPage.tsx` [MODIFIED] — Updated the client-side email Zod schemas to allow `@students.nu-laguna.edu.ph` email domains.
+
+#### Backend Fixes
+- `dto/RegisterRequest.java` [MODIFIED] — Updated the `@Pattern` email validation annotation to accept `@students.nu-laguna.edu.ph` format.
 
 ---
 
@@ -426,5 +431,11 @@ Initialized the local PostgreSQL database, resolved Spring Security CORS preflig
 - Verified frontend TypeScript compiles clean (`npx tsc --noEmit`) with 0 errors.
 - Verified frontend production packaging bundles clean (`npm run build`) with 0 errors.
 
+## [2026-05-31]
+* Initialized local PostgreSQL database `bulldogfounds`.
+* Added global CORS security filter mapping to Spring Security (`SecurityConfig.java`) to permit OPTIONS preflight requests.
+* Fixed Axios image file upload header mismatch in `itemService.ts` by setting `'Content-Type': undefined`.
+* Expanded email domain validation on backend (`RegisterRequest.java`) and frontend (`LoginPage.tsx`, `RegisterPage.tsx`) to support `@students.nu-laguna.edu.ph` domains.
+* Documented overall MVP specifications compliance in `project_compliance_audit.md`.
 
 

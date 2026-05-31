@@ -10,8 +10,8 @@ const loginSchema = z.object({
     .min(1, 'Email is required')
     .email('Please enter a valid email')
     .regex(
-      /^[a-zA-Z0-9._%+\-]+@nu\-laguna\.edu\.ph$/,
-      'Must be a valid NU Laguna email address (@nu-laguna.edu.ph)'
+      /^[a-zA-Z0-9._%+\-]+@(students\.)?nu\-laguna\.edu\.ph$/,
+      'Must be a valid NU Laguna email address (@nu-laguna.edu.ph or @students.nu-laguna.edu.ph)'
     ),
   password: z
     .string()
